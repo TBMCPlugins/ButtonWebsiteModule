@@ -6,7 +6,7 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 
 import com.sun.net.httpserver.*;
 
-import buttondevteam.io.IOHelper;
+import buttondevteam.website.io.IOHelper;
 
 /**
  * Add to {@link Main}.Pages

@@ -5,8 +5,8 @@ import java.io.IOException;
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 
-import buttondevteam.io.IOHelper;
 import buttondevteam.website.data.Stats;
+import buttondevteam.website.io.IOHelper;
 
 public class IndexPage extends Page {
 

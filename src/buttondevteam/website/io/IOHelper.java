@@ -1,4 +1,4 @@
-package buttondevteam.io;
+package buttondevteam.website.io;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
