@@ -12,6 +12,10 @@ import com.google.gson.JsonParser;
 import com.sun.net.httpserver.HttpExchange;
 
 public class IOHelper {
+	public static void SendResponse(Response resp) throws IOException {
+		SendResponse(resp.code, resp.content, resp.exchange);
+	}
+
 	public static void SendResponse(int code, String content, HttpExchange exchange) throws IOException {
 		try (BufferedOutputStream out = new BufferedOutputStream(exchange.getResponseBody())) {
 			try (ByteArrayInputStream bis = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))) {

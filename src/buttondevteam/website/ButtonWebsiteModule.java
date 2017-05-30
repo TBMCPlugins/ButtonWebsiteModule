@@ -2,32 +2,34 @@ package buttondevteam.website;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import com.sun.net.httpserver.HttpServer;
 
+import buttondevteam.lib.TBMCCoreAPI;
 import buttondevteam.website.page.*;
 
 public class ButtonWebsiteModule extends JavaPlugin {
+	private static HttpServer server;
+
 	@Override
 	public void onEnable() {
 		try {
-			this.getLogger().info("Starting webserver...");
-			HttpServer server = HttpServer.create(new InetSocketAddress(InetAddress.getLocalHost(), 8080), 10);
-			/*
-			 * Reflections rf = new Reflections( new ConfigurationBuilder().setUrls(ClasspathHelper.forClassLoader(Page.class.getClassLoader()))
-			 * .addClassLoader(Page.class.getClassLoader()).addScanners(new SubTypesScanner()) .filterInputsBy((String pkg) -> pkg.contains(Page.class.getPackage().getName()))); Set<Class<? extends
-			 * Page>> pages = rf.getSubTypesOf(Page.class); for (Class<? extends Page> page : pages) { try { if (Modifier.isAbstract(page.getModifiers())) continue; Page p = page.newInstance();
-			 * addPage(server, p); } catch (InstantiationException e) { e.printStackTrace(); } catch (IllegalAccessException e) { e.printStackTrace(); } }
-			 */ //^^ This code would load the pages dynamically - But we'll only have like, one page...
-			addPage(server, new IndexPage());
-			server.start();
-			this.getLogger().info("Webserver started");
+			server = HttpServer.create(new InetSocketAddress(InetAddress.getLocalHost(), 8080), 10);
+			addPage(new IndexPage());
+			Bukkit.getScheduler().runTaskAsynchronously(this, () -> this.getLogger().info("Starting webserver..."));
+			Bukkit.getScheduler().runTaskAsynchronously(this, server::start);
+			Bukkit.getScheduler().runTaskAsynchronously(this, () -> this.getLogger().info("Webserver started"));
 		} catch (Exception e) {
-			e.printStackTrace();
+			TBMCCoreAPI.SendException("An error occured while starting the webserver!", e);
 		}
 	}
 
-	private static void addPage(HttpServer server, Page page) {
+	/**
+	 * Adds a new page/endpoint to the website. This method needs to be called before the server finishes loading (onEnable).
+	 */
+	public static void addPage(Page page) {
 		server.createContext("/" + page.GetName(), page);
 	}
 }

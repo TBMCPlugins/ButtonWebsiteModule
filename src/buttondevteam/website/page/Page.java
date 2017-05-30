@@ -1,24 +1,24 @@
 package buttondevteam.website.page;
 
-import java.io.IOException;
 import java.io.PrintStream;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 
 import com.sun.net.httpserver.*;
 
 import buttondevteam.website.io.IOHelper;
+import buttondevteam.website.io.Response;
 
 /**
  * Add to {@link Main}.Pages
  */
 public abstract class Page implements HttpHandler {
 	public abstract String GetName();
-	
+
 	@Override
 	public void handle(HttpExchange exchange) {
 		try {
 			if (exchange.getRequestURI().getPath().equals("/" + GetName()))
-				handlePage(exchange);
+				IOHelper.SendResponse(handlePage(exchange));
 			else {
 				IOHelper.SendResponse(404, "404 Not found", exchange);
 			}
@@ -37,5 +37,8 @@ public abstract class Page implements HttpHandler {
 		}
 	}
 
-	public abstract void handlePage(HttpExchange exchange) throws IOException;
+	/**
+	 * The main logic of the endpoint. Use IOHelper to retrieve the message sent and other things.
+	 */
+	public abstract Response handlePage(HttpExchange exchange);
 }
