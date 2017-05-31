@@ -1,0 +1,6 @@
+name: ButtonWebsiteModule
+main: buttondevteam.website.ButtonWebsiteModule
+version: 4.0
+author: NorbiPeti
+depend:
+- ButtonCore
