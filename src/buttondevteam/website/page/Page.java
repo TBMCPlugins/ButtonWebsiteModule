@@ -5,6 +5,7 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 
 import com.sun.net.httpserver.*;
 
+import buttondevteam.lib.TBMCCoreAPI;
 import buttondevteam.website.io.IOHelper;
 import buttondevteam.website.io.Response;
 
@@ -23,7 +24,7 @@ public abstract class Page implements HttpHandler {
 				IOHelper.SendResponse(404, "404 Not found", exchange);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			TBMCCoreAPI.SendException("Internal Server Error in ButtonWebsiteModule!", e);
 			try {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				PrintStream str = new PrintStream(baos);

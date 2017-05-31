@@ -4,7 +4,14 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
+import java.util.logging.Level;
+
 import org.apache.commons.io.IOUtils;
+import org.bukkit.Bukkit;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -57,4 +64,85 @@ public class IOHelper {
 			return null;
 		}
 	}
+
+	/**
+	 * Sends login headers and sets the session id on the user
+	 * 
+	 * @param exchange
+	 * @param user
+	 */
+	/*public static void LoginUser(HttpExchange exchange, User user) {
+		Bukkit.getLogger().fine("Logging in user: " + user);
+		// provider.SetValues(() ->
+		// user.setSessionid(UUID.randomUUID().toString()));
+		user.setSessionid(UUID.randomUUID().toString());
+		new Cookies(2).add(new Cookie("user_id", user.getId() + "")).add(new Cookie("session_id", user.getSessionid()))
+				.SendHeaders(exchange);
+		Bukkit.getLogger().fine("Logged in user.");
+	}
+
+	public static void LogoutUser(HttpExchange exchange, User user) {
+		user.setSessionid(new UUID(0, 0).toString());
+		SendLogoutHeaders(exchange);
+	}
+
+	private static void SendLogoutHeaders(HttpExchange exchange) {
+		String expiretime = "Sat, 19 Mar 2016 23:33:00 GMT";
+		new Cookies(expiretime).add(new Cookie("user_id", "del")).add(new Cookie("session_id", "del"))
+				.SendHeaders(exchange);
+	}
+
+	public static void Redirect(String url, HttpExchange exchange) throws IOException {
+		exchange.getResponseHeaders().add("Location", url);
+		IOHelper.SendResponse(303, "<a href=\"" + url + "\">If you can see this, click here to continue</a>", exchange);
+	}
+
+	public static Cookies GetCookies(HttpExchange exchange) {
+		if (!exchange.getRequestHeaders().containsKey("Cookie"))
+			return new Cookies();
+		Map<String, String> map = new HashMap<>();
+		for (String cheader : exchange.getRequestHeaders().get("Cookie")) {
+			String[] spl = cheader.split("\\;\\s*");
+			for (String s : spl) {
+				String[] kv = s.split("\\=");
+				if (kv.length < 2)
+					continue;
+				map.put(kv[0], kv[1]);
+			}
+		}
+		if (!map.containsKey("expiretime"))
+			return new Cookies();
+		Cookies cookies = null;
+		try {
+			cookies = new Cookies(map.get("expiretime"));
+			for (Entry<String, String> item : map.entrySet())
+				if (!item.getKey().equalsIgnoreCase("expiretime"))
+					cookies.put(item.getKey(), new Cookie(item.getKey(), item.getValue()));
+		} catch (Exception e) {
+			return new Cookies();
+		}
+		return cookies;
+	}*/
+
+	/**
+	 * Get logged in user. It may also send logout headers if the cookies are invalid, or login headers to keep the user logged in.
+	 * 
+	 * @param exchange
+	 * @return The logged in user or null if not logged in.
+	 * @throws IOException
+	 */
+	/*public static User GetLoggedInUser(HttpExchange exchange) throws IOException {
+		Cookies cookies = GetCookies(exchange);
+		if (!cookies.containsKey("user_id") || !cookies.containsKey("session_id"))
+			return null;
+		User user = DataManager.load(User.class, Long.parseLong(cookies.get("user_id").getValue()), false);
+		if (user != null && cookies.get("session_id") != null
+				&& cookies.get("session_id").getValue().equals(user.getSessionid())) {
+			if (cookies.getExpireTimeParsed().minusYears(1).isBefore(ZonedDateTime.now(ZoneId.of("GMT"))))
+				LoginUser(exchange, user);
+			return user;
+		} else
+			SendLogoutHeaders(exchange);
+		return null;
+	}*/
 }

@@ -13,20 +13,23 @@ import buttondevteam.website.page.*;
 public class ButtonWebsiteModule extends JavaPlugin {
 	private static HttpServer server;
 
-	@Override
-	public void onEnable() {
+	public ButtonWebsiteModule() {
 		try {
 			server = HttpServer.create(new InetSocketAddress((InetAddress) null, 8080), 10);
-			addPage(new IndexPage());
-			Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-
-				this.getLogger().info("Starting webserver...");
-				((Runnable) server::start).run(); // Totally normal way of calling a method
-				this.getLogger().info("Webserver started");
-			});
 		} catch (Exception e) {
 			TBMCCoreAPI.SendException("An error occured while starting the webserver!", e);
 		}
+	}
+
+	@Override
+	public void onEnable() {
+		addPage(new IndexPage());
+		Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+
+			this.getLogger().info("Starting webserver...");
+			((Runnable) server::start).run(); // Totally normal way of calling a method
+			this.getLogger().info("Webserver started");
+		});
 	}
 
 	/**
