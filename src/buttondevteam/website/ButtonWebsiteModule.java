@@ -11,11 +11,12 @@ import buttondevteam.lib.TBMCCoreAPI;
 import buttondevteam.website.page.*;
 
 public class ButtonWebsiteModule extends JavaPlugin {
+	public static final int PORT = 8080;
 	private static HttpServer server;
 
 	public ButtonWebsiteModule() {
 		try {
-			server = HttpServer.create(new InetSocketAddress((InetAddress) null, 8080), 10);
+			server = HttpServer.create(new InetSocketAddress((InetAddress) null, PORT), 10);
 		} catch (Exception e) {
 			TBMCCoreAPI.SendException("An error occured while starting the webserver!", e);
 		}
@@ -25,10 +26,12 @@ public class ButtonWebsiteModule extends JavaPlugin {
 	public void onEnable() {
 		addPage(new IndexPage());
 		Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-
 			this.getLogger().info("Starting webserver...");
 			((Runnable) server::start).run(); // Totally normal way of calling a method
 			this.getLogger().info("Webserver started");
+			Thread t = new Thread(() -> AcmeClient.main("server.figytuna.com"));
+			t.setContextClassLoader(getClass().getClassLoader());
+			t.start();
 		});
 	}
 
