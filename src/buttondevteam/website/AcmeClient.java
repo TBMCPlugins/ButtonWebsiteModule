@@ -13,10 +13,12 @@
  */ //Modified
 package buttondevteam.website;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Writer;
 import java.net.URI;
 import java.security.KeyPair;
@@ -24,8 +26,6 @@ import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
-
-import javax.swing.JOptionPane;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.shredzone.acme4j.*;
@@ -40,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import buttondevteam.lib.TBMCCoreAPI;
+import buttondevteam.website.page.AcmeChallengePage;
 
 /**
  * A simple client test tool.
@@ -151,7 +152,7 @@ public class AcmeClient {
 	 *            {@link Session} to bind with
 	 * @return {@link Registration} connected to your account
 	 */
-	private Registration findOrRegisterAccount(Session session) throws AcmeException {
+	private Registration findOrRegisterAccount(Session session) throws AcmeException, IOException {
 		Registration reg;
 
 		try {
@@ -245,43 +246,29 @@ public class AcmeClient {
 	 *            Domain name to be authorized
 	 * @return {@link Challenge} to verify
 	 */
+	@SuppressWarnings("unused")
 	public Challenge httpChallenge(Authorization auth, String domain) throws AcmeException {
 		// Find a single http-01 challenge
 		Http01Challenge challenge = auth.findChallenge(Http01Challenge.TYPE);
 		if (challenge == null) {
 			throw new AcmeException("Found no " + Http01Challenge.TYPE + " challenge, don't know what to do...");
 		}
-
-		// Output the challenge, wait for acknowledge...
-		LOG.info("Please create a file in your web server's base directory.");
-		LOG.info("It must be reachable at: http://" + domain + "/.well-known/acme-challenge/" + challenge.getToken());
+		if (ButtonWebsiteModule.PORT == 80)
+			LOG.info("Storing the challenge data.");
+		else
+			LOG.info("Store the challenge data! Can't do automatically.");
+		LOG.info("It should be reachable at: http://" + domain + "/.well-known/acme-challenge/" + challenge.getToken());
 		LOG.info("File name: " + challenge.getToken());
 		LOG.info("Content: " + challenge.getAuthorization());
-		LOG.info("The file must not contain any leading or trailing whitespaces or line breaks!");
-		LOG.info("If you're ready, dismiss the dialog...");
-
-		StringBuilder message = new StringBuilder();
-		message.append("Please create a file in your web server's base directory.\n\n");
-		message.append("http://").append(domain).append("/.well-known/acme-challenge/").append(challenge.getToken())
-				.append("\n\n");
-		message.append("Content:\n\n");
-		message.append(challenge.getAuthorization());
-		acceptChallenge(message.toString());
-
+		LOG.info("Press any key to continue...");
+		if (ButtonWebsiteModule.PORT != 80)
+			try {
+				System.in.read();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		ButtonWebsiteModule.addPage(new AcmeChallengePage(challenge.getToken(), challenge.getAuthorization()));
 		return challenge;
-	}
-
-	/**
-	 * Presents the instructions for preparing the challenge validation, and waits for dismissal. If the user cancelled the dialog, an exception is thrown.
-	 *
-	 * @param message
-	 *            Instructions to be shown in the dialog
-	 */
-	public void acceptChallenge(String message) throws AcmeException {
-		int option = JOptionPane.showConfirmDialog(null, message, "Prepare Challenge", JOptionPane.OK_CANCEL_OPTION);
-		if (option == JOptionPane.CANCEL_OPTION) {
-			throw new AcmeException("User cancelled the challenge");
-		}
 	}
 
 	/**
@@ -292,10 +279,10 @@ public class AcmeClient {
 	 * @param agreement
 	 *            {@link URI} of the Terms of Service
 	 */
-	public void acceptAgreement(Registration reg, URI agreement) throws AcmeException {
-		int option = JOptionPane.showConfirmDialog(null, "Do you accept the Terms of Service?\n\n" + agreement,
-				"Accept ToS", JOptionPane.YES_NO_OPTION);
-		if (option == JOptionPane.NO_OPTION) {
+	public void acceptAgreement(Registration reg, URI agreement) throws AcmeException, IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		System.out.println("Do you accept the terms? (y/n)");
+		if (br.readLine().equalsIgnoreCase("y\n")) {
 			throw new AcmeException("User did not accept Terms of Service");
 		}
 
@@ -312,8 +299,8 @@ public class AcmeClient {
 	 */
 	public static void main(String... args) {
 		if (args.length == 0) {
-			System.err.println("Usage: ClientTest <domain>...");
-			System.exit(1);
+			TBMCCoreAPI.SendException("Error while doing ACME!", new Exception("No domains given"));
+			return;
 		}
 
 		LOG.info("Starting up...");

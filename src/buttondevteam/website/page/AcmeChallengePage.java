@@ -6,15 +6,24 @@ import buttondevteam.website.io.Response;
 
 public class AcmeChallengePage extends Page {
 
+	public AcmeChallengePage(String token, String content) {
+		this.token = token;
+		this.content = content;
+	}
+
 	@Override
 	public String GetName() {
-		return ".well-known/acme-challenge";
+		return ".well-known/acme-challenge/" + token;
 	}
 
 	@Override
 	public Response handlePage(HttpExchange exchange) {
-		// TODO Auto-generated method stub
-		return null;
+		if (content == null)
+			return new Response(500, "500 No content", exchange);
+		return new Response(200, content, exchange);
 	}
+
+	private String token;
+	private String content;
 
 }
