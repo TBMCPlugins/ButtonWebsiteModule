@@ -18,6 +18,7 @@ public abstract class Page implements HttpHandler {
 	@Override
 	public void handle(HttpExchange exchange) {
 		try {
+			exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "https://tbmcplugins.github.io");
 			if (exchange.getRequestURI().getPath().equals("/" + GetName()))
 				IOHelper.SendResponse(handlePage(exchange));
 			else {
