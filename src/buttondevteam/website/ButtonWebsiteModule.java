@@ -3,17 +3,20 @@ package buttondevteam.website;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.nio.file.Files;
-import java.security.KeyFactory;
+import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.PrivateKey;
+import java.security.Security;
 import java.security.cert.CertificateFactory;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Calendar;
 
 import javax.net.ssl.*;
 import java.security.cert.Certificate;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -38,9 +41,8 @@ public class ButtonWebsiteModule extends JavaPlugin {
 			KeyStore ks = KeyStore.getInstance("JKS");
 			String certfile = "domain-chain.crt"; /* your cert path */
 			File keystoreFile = new File("keystore.keystore");
-			FileInputStream is = new FileInputStream(keystoreFile);
 
-			ks.load(is, "somepass".toCharArray());
+			ks.load(keystoreFile.exists() ? new FileInputStream(keystoreFile) : null, "somepass".toCharArray());
 
 			String alias = "chroma";
 
@@ -50,11 +52,15 @@ public class ButtonWebsiteModule extends JavaPlugin {
 			InputStream certstream = fullStream(certfile);
 			Certificate[] certs = cf.generateCertificates(certstream).stream().toArray(Certificate[]::new);
 
-			byte[] keyBytes = Files.readAllBytes(new File("domain.key").toPath());
+			BufferedReader br = new BufferedReader(new FileReader("domain.key"));
 
-			PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
-			KeyFactory kf = KeyFactory.getInstance("RSA");
-			PrivateKey pk = kf.generatePrivate(spec);
+			Security.addProvider(new BouncyCastleProvider());
+
+			PEMParser pp = new PEMParser(br);
+			PEMKeyPair pemKeyPair = (PEMKeyPair) pp.readObject();
+			KeyPair kp = new JcaPEMKeyConverter().getKeyPair(pemKeyPair);
+			pp.close();
+			PrivateKey pk = kp.getPrivate();
 
 			// Add the certificate
 			ks.setKeyEntry(alias, pk, password, certs); // TODO: Only set if updated
@@ -95,6 +101,7 @@ public class ButtonWebsiteModule extends JavaPlugin {
 			});
 		} catch (Exception e) {
 			TBMCCoreAPI.SendException("An error occured while starting the webserver!", e);
+			getServer().getPluginManager().disablePlugin(this);
 		}
 	}
 

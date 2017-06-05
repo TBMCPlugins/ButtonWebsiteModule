@@ -305,8 +305,6 @@ public class AcmeClient {
 
 		LOG.info("Starting up...");
 
-		Security.addProvider(new BouncyCastleProvider());
-
 		Collection<String> domains = Arrays.asList(args);
 		try {
 			AcmeClient ct = new AcmeClient();
