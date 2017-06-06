@@ -42,7 +42,7 @@ public class ButtonWebsiteModule extends JavaPlugin {
 			String certfile = "domain-chain.crt"; /* your cert path */
 			File keystoreFile = new File("keystore.keystore");
 
-			ks.load(keystoreFile.exists() ? new FileInputStream(keystoreFile) : null, "somepass".toCharArray());
+			ks.load(keystoreFile.exists() ? new FileInputStream(keystoreFile) : null, password);
 
 			String alias = "chroma";
 
