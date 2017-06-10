@@ -12,4 +12,9 @@ public class Response {
 		this.content = content;
 		this.exchange = exchange;
 	}
+	public Response(int code, String[] content, HttpExchange exchange) {
+		this.code = code;
+		this.content = String.join("", content);
+		this.exchange = exchange;
+	}
 }
