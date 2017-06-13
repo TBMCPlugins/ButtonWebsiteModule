@@ -9,6 +9,9 @@ import java.security.PrivateKey;
 import java.security.Security;
 import java.security.cert.CertificateFactory;
 import java.util.Calendar;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.*;
 import java.security.cert.Certificate;
@@ -110,6 +113,8 @@ public class ButtonWebsiteModule extends JavaPlugin {
 		addPage(new IndexPage());
 		Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
 			this.getLogger().info("Starting webserver...");
+			server.setExecutor(
+					new ThreadPoolExecutor(4, 8, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(100)));
 			((Runnable) server::start).run(); // Totally normal way of calling a method
 			this.getLogger().info("Webserver started");
 			final Calendar calendar = Calendar.getInstance();
