@@ -22,12 +22,10 @@ import java.io.InputStreamReader;
 import java.io.Writer;
 import java.net.URI;
 import java.security.KeyPair;
-import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.shredzone.acme4j.*;
 import org.shredzone.acme4j.challenge.Challenge;
 import org.shredzone.acme4j.challenge.Http01Challenge;

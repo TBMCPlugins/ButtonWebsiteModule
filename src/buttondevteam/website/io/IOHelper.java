@@ -4,12 +4,12 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.logging.Level;
-
 import org.apache.commons.io.IOUtils;
 import org.bukkit.Bukkit;
 
@@ -17,6 +17,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.sun.net.httpserver.HttpExchange;
+
+import buttondevteam.lib.player.ChromaGamerBase;
+import buttondevteam.website.WebUser;
 
 public class IOHelper {
 	public static void SendResponse(Response resp) throws IOException {
@@ -71,18 +74,18 @@ public class IOHelper {
 	 * @param exchange
 	 * @param user
 	 */
-	/*public static void LoginUser(HttpExchange exchange, User user) {
+	public static void LoginUser(HttpExchange exchange, WebUser user) {
 		Bukkit.getLogger().fine("Logging in user: " + user);
 		// provider.SetValues(() ->
 		// user.setSessionid(UUID.randomUUID().toString()));
-		user.setSessionid(UUID.randomUUID().toString());
-		new Cookies(2).add(new Cookie("user_id", user.getId() + "")).add(new Cookie("session_id", user.getSessionid()))
-				.SendHeaders(exchange);
+		user.sessionID().set(UUID.randomUUID());
+		new Cookies(2).add(new Cookie("user_id", user.getUUID() + ""))
+				.add(new Cookie("session_id", user.sessionID().get().toString())).SendHeaders(exchange);
 		Bukkit.getLogger().fine("Logged in user.");
 	}
 
-	public static void LogoutUser(HttpExchange exchange, User user) {
-		user.setSessionid(new UUID(0, 0).toString());
+	public static void LogoutUser(HttpExchange exchange, WebUser user) {
+		user.sessionID().set(new UUID(0, 0));
 		SendLogoutHeaders(exchange);
 	}
 
@@ -122,7 +125,7 @@ public class IOHelper {
 			return new Cookies();
 		}
 		return cookies;
-	}*/
+	}
 
 	/**
 	 * Get logged in user. It may also send logout headers if the cookies are invalid, or login headers to keep the user logged in.
@@ -131,18 +134,18 @@ public class IOHelper {
 	 * @return The logged in user or null if not logged in.
 	 * @throws IOException
 	 */
-	/*public static User GetLoggedInUser(HttpExchange exchange) throws IOException {
+	public static WebUser GetLoggedInUser(HttpExchange exchange) throws IOException {
 		Cookies cookies = GetCookies(exchange);
 		if (!cookies.containsKey("user_id") || !cookies.containsKey("session_id"))
 			return null;
-		User user = DataManager.load(User.class, Long.parseLong(cookies.get("user_id").getValue()), false);
+		WebUser user = ChromaGamerBase.getUser(cookies.get("user_id").getValue(), WebUser.class);
 		if (user != null && cookies.get("session_id") != null
-				&& cookies.get("session_id").getValue().equals(user.getSessionid())) {
+				&& cookies.get("session_id").getValue().equals(user.sessionID().get())) {
 			if (cookies.getExpireTimeParsed().minusYears(1).isBefore(ZonedDateTime.now(ZoneId.of("GMT"))))
 				LoginUser(exchange, user);
 			return user;
 		} else
 			SendLogoutHeaders(exchange);
 		return null;
-	}*/
+	}
 }
