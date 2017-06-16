@@ -119,7 +119,7 @@ public class ButtonWebsiteModule extends JavaPlugin {
 			((Runnable) server::start).run(); // Totally normal way of calling a method
 			this.getLogger().info("Webserver started");
 			final Calendar calendar = Calendar.getInstance();
-			if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) { // Only update every week
+			if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY && !TBMCCoreAPI.IsTestServer()) { // Only update every week
 				Thread t = new Thread(() -> AcmeClient.main("server.figytuna.com"));
 				t.setContextClassLoader(getClass().getClassLoader());
 				t.start();

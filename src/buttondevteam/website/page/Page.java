@@ -34,7 +34,7 @@ public abstract class Page implements HttpHandler {
 				str.print("</pre>");
 				IOHelper.SendResponse(500, baos.toString("UTF-8"), exchange);
 			} catch (Exception e1) {
-				e1.printStackTrace();
+				TBMCCoreAPI.SendException("Exception while sending Internal Server Error in ButtonWebsiteModule!", e1);
 			}
 		}
 	}

@@ -72,14 +72,9 @@ public class IOHelper {
 
 	/**
 	 * Sends login headers and sets the session id on the user
-	 * 
-	 * @param exchange
-	 * @param user
 	 */
 	public static void LoginUser(HttpExchange exchange, WebUser user) {
 		Bukkit.getLogger().fine("Logging in user: " + user);
-		// provider.SetValues(() ->
-		// user.setSessionid(UUID.randomUUID().toString()));
 		user.sessionID().set(UUID.randomUUID());
 		new Cookies(2).add(new Cookie("user_id", user.getUUID() + ""))
 				.add(new Cookie("session_id", user.sessionID().get().toString())).SendHeaders(exchange);
@@ -97,9 +92,9 @@ public class IOHelper {
 				.SendHeaders(exchange);
 	}
 
-	public static void Redirect(String url, HttpExchange exchange) throws IOException {
+	public static Response Redirect(String url, HttpExchange exchange) throws IOException {
 		exchange.getResponseHeaders().add("Location", url);
-		IOHelper.SendResponse(303, "<a href=\"" + url + "\">If you can see this, click here to continue</a>", exchange);
+		return new Response(303, "<a href=\"" + url + "\">If you can see this, click here to continue</a>", exchange);
 	}
 
 	public static Cookies GetCookies(HttpExchange exchange) {
