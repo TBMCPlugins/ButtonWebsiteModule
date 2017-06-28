@@ -111,7 +111,6 @@ public class ButtonWebsiteModule extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		addPage(new IndexPage());
-		addPage(new AutoUpdatePage());
 		addPage(new LoginPage());
 		addPage(new ProfilePage());
 		TBMCCoreAPI.RegisterUserClass(WebUser.class);
