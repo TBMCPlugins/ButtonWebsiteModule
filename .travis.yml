@@ -14,3 +14,5 @@ deploy:
     on:
       branch: master
     skip_cleanup: true
+notifications:
+  webhooks: https://server.figytuna.com:8080/build_notifications

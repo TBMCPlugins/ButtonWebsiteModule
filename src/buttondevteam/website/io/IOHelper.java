@@ -76,13 +76,15 @@ public class IOHelper {
 	public static void LoginUser(HttpExchange exchange, WebUser user) {
 		Bukkit.getLogger().fine("Logging in user: " + user);
 		user.sessionID().set(UUID.randomUUID());
+		user.save();
 		new Cookies(2).add(new Cookie("user_id", user.getUUID() + ""))
-				.add(new Cookie("session_id", user.sessionID().get().toString())).SendHeaders(exchange);
+				.add(new Cookie("session_id", user.sessionID().getOrDefault(null).toString())).SendHeaders(exchange);
 		Bukkit.getLogger().fine("Logged in user.");
 	}
 
 	public static void LogoutUser(HttpExchange exchange, WebUser user) {
 		user.sessionID().set(new UUID(0, 0));
+		user.save();
 		SendLogoutHeaders(exchange);
 	}
 
@@ -125,7 +127,7 @@ public class IOHelper {
 	}
 
 	/**
-	 * Get logged in user. It may also send logout headers if the cookies are invalid, or login headers to keep the user logged in.
+	 * Get logged in user. It may also send logout headers if the cookies are invalid, or login headers to keep the user logged in. <b>Make sure to save the user data.</b>
 	 * 
 	 * @param exchange
 	 * @return The logged in user or null if not logged in.
@@ -137,7 +139,7 @@ public class IOHelper {
 			return null;
 		WebUser user = ChromaGamerBase.getUser(cookies.get("user_id").getValue(), WebUser.class);
 		if (user != null && cookies.get("session_id") != null
-				&& cookies.get("session_id").getValue().equals(user.sessionID().get())) {
+				&& cookies.get("session_id").getValue().equals(user.sessionID().getOrDefault(null))) {
 			if (cookies.getExpireTimeParsed().minusYears(1).isBefore(ZonedDateTime.now(ZoneId.of("GMT"))))
 				LoginUser(exchange, user);
 			return user;
@@ -173,5 +175,23 @@ public class IOHelper {
 			last = next + 1;
 		}
 		return result;
+	}
+
+	public static HashMap<String, String> GetPOSTKeyValues(HttpExchange exchange) {
+		try {
+			String[] content = GetPOST(exchange).split("\\&");
+			HashMap<String, String> vars = new HashMap<>();
+			for (String var : content) {
+				String[] spl = var.split("\\=");
+				if (spl.length == 1)
+					vars.put(spl[0], "");
+				else
+					vars.put(spl[0], spl[1]);
+			}
+			return vars;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new HashMap<>();
+		}
 	}
 }

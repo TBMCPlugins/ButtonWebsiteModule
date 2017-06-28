@@ -218,3 +218,5 @@ TheButtonAutoFlair/out/artifacts/Autoflair/Autoflair.jar
 *.name
 .idea/compiler.xml
 *.xml
+
+upload_key
