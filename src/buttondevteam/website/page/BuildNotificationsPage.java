@@ -1,5 +1,6 @@
 package buttondevteam.website.page;
 
+import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.Signature;
@@ -9,9 +10,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Supplier;
 
+import org.bukkit.Bukkit;
+
 import com.google.gson.*;
 import com.sun.net.httpserver.HttpExchange;
 
+import buttondevteam.lib.PluginUpdater;
 import buttondevteam.lib.TBMCCoreAPI;
 import buttondevteam.website.io.IOHelper;
 import buttondevteam.website.io.Response;
@@ -23,10 +27,13 @@ public class BuildNotificationsPage extends Page {
 		return "build_notifications";
 	}
 
-	private static final String signature = ((Supplier<String>) () -> {
+	private static final Gson gson = new Gson();
+
+	private static final String publickey = ((Supplier<String>) () -> {
 		try {
 			return fromString(TBMCCoreAPI.DownloadString("https://api.travis-ci.org/config"),
-					"config.notifications.webhook.public_key").getAsString();
+					"config.notifications.webhook.public_key").getAsString().replace("-----BEGIN PUBLIC KEY-----", "")
+							.replaceAll("\n", "").replace("-----END PUBLIC KEY-----", "");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -37,14 +44,17 @@ public class BuildNotificationsPage extends Page {
 		HashMap<String, String> post = IOHelper.GetPOSTKeyValues(exchange);
 		try {
 			final List<String> signatures = exchange.getRequestHeaders().get("Signature");
-			if (signatures.size() > 0 && post.containsKey("payload")
-					&& verifySignature(Base64.getDecoder().decode(post.get("payload")),
-							Base64.getDecoder().decode(signatures.get(0)), signature)) {
-				// TODO: Send event
+			final String payload = post.get("payload");
+			if (signatures != null && signatures.size() > 0 && post.containsKey("payload")
+					&& verifySignature(payload.getBytes(StandardCharsets.UTF_8),
+							Base64.getDecoder().decode(signatures.get(0)), publickey)) {
+				Bukkit.getPluginManager()
+						.callEvent(new PluginUpdater.UpdatedEvent(gson.fromJson(payload, JsonObject.class)));
 				return new Response(200, "All right", exchange);
 			}
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			return new Response(400,
+					"Invalid data, error: " + e + " If you're messing with this, stop messing with this.", exchange); // Blame the user
 		}
 		return new Response(400, "Verification failed", exchange);
 	}
@@ -68,7 +78,7 @@ public class BuildNotificationsPage extends Page {
 	}
 
 	public static JsonElement fromString(String json, String path) throws JsonSyntaxException {
-		JsonObject obj = new GsonBuilder().create().fromJson(json, JsonObject.class);
+		JsonObject obj = gson.fromJson(json, JsonObject.class);
 		String[] seg = path.split("\\.");
 		for (String element : seg) {
 			if (obj != null) {

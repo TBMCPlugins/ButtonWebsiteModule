@@ -186,7 +186,7 @@ public class IOHelper {
 				if (spl.length == 1)
 					vars.put(spl[0], "");
 				else
-					vars.put(spl[0], spl[1]);
+					vars.put(spl[0], URLDecoder.decode(spl[1], "utf-8"));
 			}
 			return vars;
 		} catch (Exception e) {
