@@ -78,7 +78,7 @@ public class IOHelper {
 		user.sessionID().set(UUID.randomUUID());
 		user.save();
 		new Cookies(2).add(new Cookie("user_id", user.getUUID() + ""))
-				.add(new Cookie("session_id", user.sessionID().getOrDefault(null).toString())).SendHeaders(exchange);
+				.add(new Cookie("session_id", user.sessionID().get().toString())).SendHeaders(exchange);
 		Bukkit.getLogger().fine("Logged in user.");
 	}
 
@@ -139,7 +139,7 @@ public class IOHelper {
 			return null;
 		WebUser user = ChromaGamerBase.getUser(cookies.get("user_id").getValue(), WebUser.class);
 		if (user != null && cookies.get("session_id") != null
-				&& cookies.get("session_id").getValue().equals(user.sessionID().getOrDefault(null))) {
+				&& cookies.get("session_id").getValue().equals(user.sessionID().get())) {
 			if (cookies.getExpireTimeParsed().minusYears(1).isBefore(ZonedDateTime.now(ZoneId.of("GMT"))))
 				LoginUser(exchange, user);
 			return user;
