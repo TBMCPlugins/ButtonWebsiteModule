@@ -111,6 +111,9 @@ public class ButtonWebsiteModule extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		addPage(new IndexPage());
+		addPage(new LoginPage());
+		addPage(new ProfilePage());
+		addPage(new BuildNotificationsPage());
 		TBMCCoreAPI.RegisterUserClass(WebUser.class);
 		Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
 			this.getLogger().info("Starting webserver...");

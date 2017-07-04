@@ -1,1 +1,18 @@
 language: java
+jdk:
+  - oraclejdk8
+deploy:
+  # deploy develop to the staging environment
+  - provider: script
+    script: chmod +x deploy.sh && sh deploy.sh staging
+    on:
+      branch: dev
+    skip_cleanup: true
+  # deploy master to production
+  - provider: script
+    script: chmod +x deploy.sh && sh deploy.sh production
+    on:
+      branch: master
+    skip_cleanup: true
+notifications:
+  webhooks: https://server.figytuna.com:8080/build_notifications
