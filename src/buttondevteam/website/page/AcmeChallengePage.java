@@ -6,11 +6,6 @@ import buttondevteam.website.io.Response;
 
 public class AcmeChallengePage extends Page {
 
-	public AcmeChallengePage(String token, String content) {
-		this.token = token;
-		this.content = content;
-	}
-
 	@Override
 	public String GetName() {
 		return ".well-known/acme-challenge/" + token;
@@ -23,7 +18,12 @@ public class AcmeChallengePage extends Page {
 		return new Response(200, content, exchange);
 	}
 
-	private String token;
-	private String content;
+	private static String token;
+	private static String content;
+
+	public static void setValues(String token, String content) {
+		AcmeChallengePage.token = token;
+		AcmeChallengePage.content = content;
+	}
 
 }

@@ -31,7 +31,7 @@ import buttondevteam.lib.TBMCCoreAPI;
 import buttondevteam.website.page.*;
 
 public class ButtonWebsiteModule extends JavaPlugin {
-	public static final int PORT = 8080;
+	public static final int PORT = 443;
 	private static HttpsServer server;
 
 	public ButtonWebsiteModule() {
@@ -111,19 +111,22 @@ public class ButtonWebsiteModule extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		addPage(new IndexPage());
+		addPage(new LoginPage());
+		addPage(new ProfilePage());
 		TBMCCoreAPI.RegisterUserClass(WebUser.class);
 		Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
 			this.getLogger().info("Starting webserver...");
 			server.setExecutor(
 					new ThreadPoolExecutor(4, 8, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(100)));
-			((Runnable) server::start).run(); // Totally normal way of calling a method
-			this.getLogger().info("Webserver started");
 			final Calendar calendar = Calendar.getInstance();
 			if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY && !TBMCCoreAPI.IsTestServer()) { // Only update every week
+				addPage(new AcmeChallengePage()); // Add before the server gets started
 				Thread t = new Thread(() -> AcmeClient.main("server.figytuna.com"));
 				t.setContextClassLoader(getClass().getClassLoader());
 				t.start();
 			}
+			((Runnable) server::start).run(); // Totally normal way of calling a method
+			this.getLogger().info("Webserver started");
 		});
 	}
 

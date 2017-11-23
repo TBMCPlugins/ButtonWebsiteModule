@@ -244,28 +244,24 @@ public class AcmeClient {
 	 *            Domain name to be authorized
 	 * @return {@link Challenge} to verify
 	 */
-	@SuppressWarnings("unused")
 	public Challenge httpChallenge(Authorization auth, String domain) throws AcmeException {
 		// Find a single http-01 challenge
 		Http01Challenge challenge = auth.findChallenge(Http01Challenge.TYPE);
 		if (challenge == null) {
 			throw new AcmeException("Found no " + Http01Challenge.TYPE + " challenge, don't know what to do...");
 		}
-		if (ButtonWebsiteModule.PORT == 80)
-			LOG.info("Storing the challenge data.");
-		else
-			LOG.info("Store the challenge data! Can't do automatically.");
+		// if (ButtonWebsiteModule.PORT == 443)
+		LOG.info("Storing the challenge data.");
+		/*
+		 * else LOG.info("Store the challenge data! Can't do automatically.");
+		 */
 		LOG.info("It should be reachable at: http://" + domain + "/.well-known/acme-challenge/" + challenge.getToken());
-		LOG.info("File name: " + challenge.getToken());
-		LOG.info("Content: " + challenge.getAuthorization());
-		LOG.info("Press any key to continue...");
-		if (ButtonWebsiteModule.PORT != 80)
-			try {
-				System.in.read();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		ButtonWebsiteModule.addPage(new AcmeChallengePage(challenge.getToken(), challenge.getAuthorization()));
+		// LOG.info("File name: " + challenge.getToken());
+		// LOG.info("Content: " + challenge.getAuthorization());
+		/*
+		 * LOG.info("Press any key to continue..."); if (ButtonWebsiteModule.PORT != 443) try { System.in.read(); } catch (IOException e) { e.printStackTrace(); }
+		 */
+		AcmeChallengePage.setValues(challenge.getToken(), challenge.getAuthorization());
 		return challenge;
 	}
 
