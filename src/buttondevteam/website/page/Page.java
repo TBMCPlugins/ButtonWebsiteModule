@@ -22,7 +22,7 @@ public abstract class Page implements HttpHandler {
 			if (exchange.getRequestURI().getPath().equals("/" + GetName()))
 				IOHelper.SendResponse(handlePage(exchange));
 			else {
-				IOHelper.SendResponse(404, "404 Not found", exchange);
+				IOHelper.SendResponse(404, "404 Not found: " + exchange.getRequestURI().getPath(), exchange);
 			}
 		} catch (Exception e) {
 			TBMCCoreAPI.SendException("Internal Server Error in ButtonWebsiteModule!", e);

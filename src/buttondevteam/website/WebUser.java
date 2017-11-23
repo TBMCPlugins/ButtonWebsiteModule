@@ -17,6 +17,6 @@ public class WebUser extends ChromaGamerBase {
 	}
 
 	public PlayerData<UUID> sessionID() {
-		return data(new UUID(0, 0));
+		return data(new UUID(0, 0)); //It's used with toString() directly, so can't be null
 	}
 }
