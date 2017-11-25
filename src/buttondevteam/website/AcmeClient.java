@@ -269,6 +269,11 @@ public class AcmeClient {
 		 * LOG.info("Press any key to continue..."); if (ButtonWebsiteModule.PORT != 443) try { System.in.read(); } catch (IOException e) { e.printStackTrace(); }
 		 */
 		ButtonWebsiteModule.addHttpPage(new AcmeChallengePage(challenge.getToken(), challenge.getAuthorization()));
+		ButtonWebsiteModule.startHttp();
+		try {
+			Thread.sleep(1000); // Just to make sure
+		} catch (InterruptedException e) {
+		}
 		return challenge;
 	}
 

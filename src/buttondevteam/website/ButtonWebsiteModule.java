@@ -130,21 +130,32 @@ public class ButtonWebsiteModule extends JavaPlugin {
 			this.getLogger().info("Starting webserver...");
 			server.setExecutor(
 					new ThreadPoolExecutor(4, 8, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(100)));
-			final Calendar calendar = Calendar.getInstance();
-			if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY && !TBMCCoreAPI.IsTestServer()) { // Only update every week
-				Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-				AcmeClient.main("server.figytuna.com"); // Task is running async so we don't need an extra thread
-			}
-			((Runnable) server::start).run(); // Totally normal way of calling a method
 			httpserver.createContext("/", new HttpHandler() {
 				@Override
 				public void handle(HttpExchange exchange) throws IOException {
 					IOHelper.SendResponse(IOHelper.Redirect("https://server.figytuna.com/", exchange));
 				}
 			});
-			httpserver.start();
+			final Calendar calendar = Calendar.getInstance();
+			if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY && !TBMCCoreAPI.IsTestServer()) { // Only update every week
+				Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+				AcmeClient.main("server.figytuna.com"); // Task is running async so we don't need an extra thread
+			}
+			((Runnable) server::start).run(); // Totally normal way of calling a method
+			if (!httpstarted)
+				httpserver.start();
 			this.getLogger().info("Webserver started");
 		});
+	}
+
+	private static boolean httpstarted = false;
+
+	/**
+	 * Used to start the server when the ACME client needs it
+	 */
+	static void startHttp() {
+		httpserver.start();
+		httpstarted = true;
 	}
 
 	/**
