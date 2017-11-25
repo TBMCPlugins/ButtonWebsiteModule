@@ -27,6 +27,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
@@ -41,12 +42,12 @@ public class ButtonWebsiteModule extends JavaPlugin {
 	/**
 	 * For ACME validation and user redirection
 	 */
-	private static HttpsServer httpserver;
+	private static HttpServer httpserver;
 
 	public ButtonWebsiteModule() {
 		try {
 			server = HttpsServer.create(new InetSocketAddress((InetAddress) null, PORT), 10);
-			httpserver = HttpsServer.create(new InetSocketAddress((InetAddress) null, 80), 10);
+			httpserver = HttpServer.create(new InetSocketAddress((InetAddress) null, 80), 10);
 			SSLContext sslContext = SSLContext.getInstance("TLS");
 
 			// initialise the keystore
@@ -130,8 +131,10 @@ public class ButtonWebsiteModule extends JavaPlugin {
 			server.setExecutor(
 					new ThreadPoolExecutor(4, 8, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(100)));
 			final Calendar calendar = Calendar.getInstance();
-			if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY && !TBMCCoreAPI.IsTestServer()) // Only update every week
+			if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY && !TBMCCoreAPI.IsTestServer()) { // Only update every week
+				Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
 				AcmeClient.main("server.figytuna.com"); // Task is running async so we don't need an extra thread
+			}
 			((Runnable) server::start).run(); // Totally normal way of calling a method
 			httpserver.createContext("/", new HttpHandler() {
 				@Override
