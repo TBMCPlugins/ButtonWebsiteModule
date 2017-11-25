@@ -3,6 +3,8 @@ package buttondevteam.website;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.PrivateKey;
@@ -23,20 +25,28 @@ import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
 
 import buttondevteam.lib.TBMCCoreAPI;
+import buttondevteam.website.io.IOHelper;
 import buttondevteam.website.page.*;
 
 public class ButtonWebsiteModule extends JavaPlugin {
 	public static final int PORT = 443;
 	private static HttpsServer server;
+	/**
+	 * For ACME validation and user redirection
+	 */
+	private static HttpsServer httpserver;
 
 	public ButtonWebsiteModule() {
 		try {
 			server = HttpsServer.create(new InetSocketAddress((InetAddress) null, PORT), 10);
+			httpserver = HttpsServer.create(new InetSocketAddress((InetAddress) null, 80), 10);
 			SSLContext sslContext = SSLContext.getInstance("TLS");
 
 			// initialise the keystore
@@ -120,13 +130,16 @@ public class ButtonWebsiteModule extends JavaPlugin {
 			server.setExecutor(
 					new ThreadPoolExecutor(4, 8, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(100)));
 			final Calendar calendar = Calendar.getInstance();
-			if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY && !TBMCCoreAPI.IsTestServer()) { // Only update every week
-				addPage(new AcmeChallengePage()); // Add before the server gets started
-				Thread t = new Thread(() -> AcmeClient.main("server.figytuna.com"));
-				t.setContextClassLoader(getClass().getClassLoader());
-				t.start();
-			}
+			if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY && !TBMCCoreAPI.IsTestServer()) // Only update every week
+				AcmeClient.main("server.figytuna.com"); // Task is running async so we don't need an extra thread
 			((Runnable) server::start).run(); // Totally normal way of calling a method
+			httpserver.createContext("/", new HttpHandler() {
+				@Override
+				public void handle(HttpExchange exchange) throws IOException {
+					IOHelper.SendResponse(IOHelper.Redirect("https://server.figytuna.com/", exchange));
+				}
+			});
+			httpserver.start();
 			this.getLogger().info("Webserver started");
 		});
 	}
@@ -136,6 +149,29 @@ public class ButtonWebsiteModule extends JavaPlugin {
 	 */
 	public static void addPage(Page page) {
 		server.createContext("/" + page.GetName(), page);
+	}
+
+	/**
+	 * Adds an <b>insecure</b> endpoint to the website. This should be avoided when possible.
+	 */
+	public static void addHttpPage(Page page) {
+		httpserver.createContext("/" + page.GetName(), page);
+	}
+
+	static void storeRegistration(URI location) {
+		final ButtonWebsiteModule plugin = getPlugin(ButtonWebsiteModule.class);
+		plugin.getConfig().set("registration", location.toString());
+		plugin.saveConfig();
+	}
+
+	static URI getRegistration() {
+		try {
+			String str = getPlugin(ButtonWebsiteModule.class).getConfig().getString("registration");
+			return str == null ? null : new URI(str);
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	private static InputStream fullStream(String fname) throws IOException {

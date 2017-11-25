@@ -6,6 +6,11 @@ import buttondevteam.website.io.Response;
 
 public class AcmeChallengePage extends Page {
 
+	public AcmeChallengePage(String token, String content) { // The page name needs to be known before server start
+		AcmeChallengePage.token = token;
+		AcmeChallengePage.content = content;
+	}
+
 	@Override
 	public String GetName() {
 		return ".well-known/acme-challenge/" + token;
@@ -20,10 +25,5 @@ public class AcmeChallengePage extends Page {
 
 	private static String token;
 	private static String content;
-
-	public static void setValues(String token, String content) {
-		AcmeChallengePage.token = token;
-		AcmeChallengePage.content = content;
-	}
 
 }

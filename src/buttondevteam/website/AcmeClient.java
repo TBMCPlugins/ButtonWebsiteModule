@@ -153,6 +153,12 @@ public class AcmeClient {
 	private Registration findOrRegisterAccount(Session session) throws AcmeException, IOException {
 		Registration reg;
 
+		URI loc = ButtonWebsiteModule.getRegistration();
+		if (loc != null) {
+			LOG.info("Loading account from file");
+			return Registration.bind(session, loc);
+		}
+
 		try {
 			// Try to create a new Registration.
 			reg = new RegistrationBuilder().create(session);
@@ -169,6 +175,7 @@ public class AcmeClient {
 			// URL of the existing registration's location. Bind it to the session.
 			reg = Registration.bind(session, ex.getLocation());
 			LOG.info("Account does already exist, URI: " + reg.getLocation(), ex);
+			ButtonWebsiteModule.storeRegistration(ex.getLocation());
 		}
 
 		return reg;
@@ -261,7 +268,7 @@ public class AcmeClient {
 		/*
 		 * LOG.info("Press any key to continue..."); if (ButtonWebsiteModule.PORT != 443) try { System.in.read(); } catch (IOException e) { e.printStackTrace(); }
 		 */
-		AcmeChallengePage.setValues(challenge.getToken(), challenge.getAuthorization());
+		ButtonWebsiteModule.addHttpPage(new AcmeChallengePage(challenge.getToken(), challenge.getAuthorization()));
 		return challenge;
 	}
 
