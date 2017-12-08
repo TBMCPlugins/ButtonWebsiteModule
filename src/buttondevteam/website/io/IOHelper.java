@@ -29,9 +29,19 @@ public class IOHelper {
 	}
 
 	public static void SendResponse(int code, String content, HttpExchange exchange) throws IOException {
+		if (exchange.getRequestMethod().equalsIgnoreCase("HEAD")) {
+			exchange.sendResponseHeaders(code, 0);
+			exchange.getResponseBody().close();
+			return;
+		}
 		try (BufferedOutputStream out = new BufferedOutputStream(exchange.getResponseBody())) {
 			try (ByteArrayInputStream bis = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))) {
-				exchange.sendResponseHeaders(code, bis.available());
+				try {
+					exchange.sendResponseHeaders(code, bis.available());
+				} catch (IOException e) {
+					if (!e.getMessage().equals("headers already sent"))
+						throw e; // If an error occurs after sending the response headers send the error page even if the headers are for the original
+				} // This code will send *some page* (most likely an error page) with the original headers instead of failing to do anything
 				byte[] buffer = new byte[512];
 				int count;
 				while ((count = bis.read(buffer)) != -1) {
@@ -139,7 +149,7 @@ public class IOHelper {
 			return null;
 		WebUser user = ChromaGamerBase.getUser(cookies.get("user_id").getValue(), WebUser.class);
 		if (user != null && cookies.get("session_id") != null
-				&& cookies.get("session_id").getValue().equals(user.sessionID().get())) {
+				&& cookies.get("session_id").getValue().equals(user.sessionID().get().toString())) {
 			if (cookies.getExpireTimeParsed().minusYears(1).isBefore(ZonedDateTime.now(ZoneId.of("GMT"))))
 				LoginUser(exchange, user);
 			return user;
