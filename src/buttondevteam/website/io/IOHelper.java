@@ -25,6 +25,8 @@ import buttondevteam.website.WebUser;
 
 public class IOHelper {
 	public static void SendResponse(Response resp) throws IOException {
+		if (resp == null)
+			return; // Response is already sent
 		SendResponse(resp.code, resp.content, resp.exchange);
 	}
 
