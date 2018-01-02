@@ -89,4 +89,9 @@ public class BridgePage extends Page {
 		}
 		connections.values().remove(socket);
 	}
+
+	@Override
+	public boolean exactPage() {
+		return false;
+	}
 }

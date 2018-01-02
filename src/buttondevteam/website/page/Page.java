@@ -16,10 +16,10 @@ public abstract class Page implements HttpHandler {
 	public abstract String GetName();
 
 	@Override
-	public void handle(HttpExchange exchange) {
+	public final void handle(HttpExchange exchange) {
 		try {
 			exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "https://tbmcplugins.github.io");
-			if (exchange.getRequestURI().getPath().equals("/" + GetName()))
+			if (exactPage() ? exchange.getRequestURI().getPath().equals("/" + GetName()) : true)
 				IOHelper.SendResponse(handlePage(exchange));
 			else {
 				IOHelper.SendResponse(404, "404 Not found: " + exchange.getRequestURI().getPath(), exchange);
@@ -43,4 +43,13 @@ public abstract class Page implements HttpHandler {
 	 * The main logic of the endpoint. Use IOHelper to retrieve the message sent and other things.
 	 */
 	public abstract Response handlePage(HttpExchange exchange);
+
+	/**
+	 * Whether to return 404 when the URL doesn't match the exact path
+	 * 
+	 * @return
+	 */
+	public boolean exactPage() {
+		return true;
+	}
 }
