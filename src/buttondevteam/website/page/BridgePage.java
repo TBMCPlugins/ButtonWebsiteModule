@@ -36,7 +36,7 @@ public class BridgePage extends Page {
 				socket.setKeepAlive(true);
 				socket.setTcpNoDelay(true);
 				connections.put(id, socket);
-				return new Response(201, "", exchange);
+				return new Response(201, "You know what you created. A bridge.", exchange);
 			case "PUT":
 				s = getSocket(exchange);
 				if (s == null)
