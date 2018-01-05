@@ -32,7 +32,7 @@ public class IOHelper {
 
 	public static void SendResponse(int code, String content, HttpExchange exchange) throws IOException {
 		if (exchange.getRequestMethod().equalsIgnoreCase("HEAD")) {
-			exchange.sendResponseHeaders(code, 0);
+			exchange.sendResponseHeaders(code, -1); // -1 indicates no data
 			exchange.getResponseBody().close();
 			return;
 		}

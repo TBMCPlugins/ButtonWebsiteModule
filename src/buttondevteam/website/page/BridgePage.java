@@ -47,6 +47,7 @@ public class BridgePage extends Page {
 				s = getSocket(exchange);
 				if (s == null)
 					return new Response(400, "No connection", exchange);
+				exchange.sendResponseHeaders(200, 0); // Chunked transfer, any amount of data
 				IOUtils.copy(s.getInputStream(), exchange.getResponseBody());
 				exchange.getResponseBody().close(); // TODO: Keep open?
 				return null; // Response already sen
