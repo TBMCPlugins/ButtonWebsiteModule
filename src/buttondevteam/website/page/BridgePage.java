@@ -42,6 +42,7 @@ public class BridgePage extends Page {
 				if (s == null)
 					return new Response(400, "No connection", exchange);
 				IOUtils.copy(exchange.getRequestBody(), s.getOutputStream());
+				s.getOutputStream().flush();
 				return new Response(200, "OK", exchange);
 			case "GET":
 				s = getSocket(exchange);
@@ -49,6 +50,7 @@ public class BridgePage extends Page {
 					return new Response(400, "No connection", exchange);
 				exchange.sendResponseHeaders(200, 0); // Chunked transfer, any amount of data
 				IOUtils.copy(s.getInputStream(), exchange.getResponseBody());
+				exchange.getResponseBody().flush();
 				exchange.getResponseBody().close(); // TODO: Keep open?
 				return null; // Response already sen
 			case "DELETE":
