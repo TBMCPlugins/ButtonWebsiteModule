@@ -47,6 +47,7 @@ public class BridgePage extends Page {
 					return new Response(400, "No connection", exchange);
 				if (s.isClosed())
 					return new Response(410, "Socket Gone", exchange);
+				copyStream(exchange.getRequestBody(), s.getOutputStream());
 				// Don't close the socket, PUT messages are sent individually
 				return new Response(200, "OK", exchange);
 			case "GET":
@@ -56,6 +57,7 @@ public class BridgePage extends Page {
 				if (s.isClosed())
 					return new Response(410, "Socket Gone", exchange);
 				exchange.sendResponseHeaders(200, 0); // Chunked transfer, any amount of data
+				copyStream(s.getInputStream(), exchange.getResponseBody());
 				exchange.getResponseBody().close(); // It'll only get here when the communication is already done
 				return null; // Response already sent
 			case "DELETE":
