@@ -36,12 +36,14 @@ public class BridgePage extends Page {
 				socket.setKeepAlive(true);
 				socket.setTcpNoDelay(true);
 				connections.put(id, socket);
+				System.out.println("[" + id + "] Created a bridge: " + id);
 				return new Response(201, "You know what you created. A bridge.", exchange);
 			case "PUT":
 				s = getSocket(exchange);
 				if (s == null)
 					return new Response(400, "No connection", exchange);
-				IOUtils.copy(exchange.getRequestBody(), s.getOutputStream());
+				System.out.println("[" + id + "] PUT " + IOUtils.copy(exchange.getRequestBody(), s.getOutputStream())
+						+ " bytes into the server");
 				s.getOutputStream().flush();
 				return new Response(200, "OK", exchange);
 			case "GET":
@@ -49,11 +51,14 @@ public class BridgePage extends Page {
 				if (s == null)
 					return new Response(400, "No connection", exchange);
 				exchange.sendResponseHeaders(200, 0); // Chunked transfer, any amount of data
-				IOUtils.copy(s.getInputStream(), exchange.getResponseBody());
+				System.out.println("[" + id + "] Sending to GET");
+				System.out.println("[" + id + "] Sent to GET "
+						+ IOUtils.copy(s.getInputStream(), exchange.getResponseBody()) + " bytes");
 				exchange.getResponseBody().flush();
-				exchange.getResponseBody().close(); // TODO: Keep open?
-				return null; // Response already sen
+				// exchange.getResponseBody().close(); // TO!DO: Keep open? - YES
+				return null; // Response already sent
 			case "DELETE":
+				System.out.println("[" + id + "] delet this");
 				closeSocket(exchange);
 				return new Response(200, "OK", exchange);
 			default:
