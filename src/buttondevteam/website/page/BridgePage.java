@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,14 +45,18 @@ public class BridgePage extends Page {
 				s = getSocket(exchange);
 				if (s == null)
 					return new Response(400, "No connection", exchange);
+				if (s.isClosed())
+					return new Response(410, "Socket Gone", exchange);
 				System.out.println("[" + id + "] PUT " + copyStream(exchange.getRequestBody(), s.getOutputStream())
 						+ " bytes into the server");
-				s.getOutputStream().close();
+				// s.getOutputStream().close(); - Don't close the socket, PUT messages are sent individually
 				return new Response(200, "OK", exchange);
 			case "GET":
 				s = getSocket(exchange);
 				if (s == null)
 					return new Response(400, "No connection", exchange);
+				if (s.isClosed())
+					return new Response(410, "Socket Gone", exchange);
 				exchange.sendResponseHeaders(200, 0); // Chunked transfer, any amount of data
 				System.out.println("[" + id + "] Sending to GET");
 				System.out.println("[" + id + "] Sent to GET "
@@ -103,9 +108,13 @@ public class BridgePage extends Page {
 		byte[] buffer = new byte[4096];
 		long count = 0;
 		int n = 0;
-		while (-1 != (n = is.read(buffer))) { // Read is blocking
-			os.write(buffer, 0, n);
-			count += n;
+		try {
+			while (-1 != (n = is.read(buffer))) { // Read is blocking
+				os.write(buffer, 0, n);
+				count += n;
+				os.flush();
+			}
+		} catch (SocketException e) { // Conection closed
 			os.flush();
 		}
 		return (int) count;
