@@ -39,7 +39,7 @@ public class BridgePage extends Page {
 				socket.setKeepAlive(true);
 				socket.setTcpNoDelay(true);
 				connections.put(id, socket);
-				System.out.println("[" + id + "] Created a bridge: " + id);
+				System.out.println("[BWM] Created a bridge: " + id);
 				return new Response(201, "You know what you created. A bridge.", exchange);
 			case "PUT":
 				s = getSocket(exchange);
@@ -47,9 +47,7 @@ public class BridgePage extends Page {
 					return new Response(400, "No connection", exchange);
 				if (s.isClosed())
 					return new Response(410, "Socket Gone", exchange);
-				System.out.println("[" + id + "] PUT " + copyStream(exchange.getRequestBody(), s.getOutputStream())
-						+ " bytes into the server");
-				// s.getOutputStream().close(); - Don't close the socket, PUT messages are sent individually
+				// Don't close the socket, PUT messages are sent individually
 				return new Response(200, "OK", exchange);
 			case "GET":
 				s = getSocket(exchange);
@@ -58,13 +56,10 @@ public class BridgePage extends Page {
 				if (s.isClosed())
 					return new Response(410, "Socket Gone", exchange);
 				exchange.sendResponseHeaders(200, 0); // Chunked transfer, any amount of data
-				System.out.println("[" + id + "] Sending to GET");
-				System.out.println("[" + id + "] Sent to GET "
-						+ copyStream(s.getInputStream(), exchange.getResponseBody()) + " bytes");
 				exchange.getResponseBody().close(); // It'll only get here when the communication is already done
 				return null; // Response already sent
 			case "DELETE":
-				System.out.println("[" + id + "] delet this");
+				System.out.println("[BWM] [" + id + "] delet this");
 				closeSocket(exchange);
 				return new Response(200, "OK", exchange);
 			default:
