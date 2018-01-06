@@ -1,6 +1,8 @@
 package buttondevteam.website.page;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,9 +44,9 @@ public class BridgePage extends Page {
 				s = getSocket(exchange);
 				if (s == null)
 					return new Response(400, "No connection", exchange);
-				System.out.println("[" + id + "] PUT " + IOUtils.copy(exchange.getRequestBody(), s.getOutputStream())
+				System.out.println("[" + id + "] PUT " + copyStream(exchange.getRequestBody(), s.getOutputStream())
 						+ " bytes into the server");
-				s.getOutputStream().flush();
+				s.getOutputStream().close();
 				return new Response(200, "OK", exchange);
 			case "GET":
 				s = getSocket(exchange);
@@ -53,9 +55,8 @@ public class BridgePage extends Page {
 				exchange.sendResponseHeaders(200, 0); // Chunked transfer, any amount of data
 				System.out.println("[" + id + "] Sending to GET");
 				System.out.println("[" + id + "] Sent to GET "
-						+ IOUtils.copy(s.getInputStream(), exchange.getResponseBody()) + " bytes");
-				exchange.getResponseBody().flush();
-				// exchange.getResponseBody().close(); // TO!DO: Keep open? - YES
+						+ copyStream(s.getInputStream(), exchange.getResponseBody()) + " bytes");
+				exchange.getResponseBody().close(); // It'll only get here when the communication is already done
 				return null; // Response already sent
 			case "DELETE":
 				System.out.println("[" + id + "] delet this");
@@ -96,6 +97,18 @@ public class BridgePage extends Page {
 			throw new RuntimeException(e);
 		}
 		connections.values().remove(socket);
+	}
+
+	private int copyStream(InputStream is, OutputStream os) throws IOException { // Based on IOUtils.copy()
+		byte[] buffer = new byte[4096];
+		long count = 0;
+		int n = 0;
+		while (-1 != (n = is.read(buffer))) { // Read is blocking
+			os.write(buffer, 0, n);
+			count += n;
+			os.flush();
+		}
+		return (int) count;
 	}
 
 	@Override
