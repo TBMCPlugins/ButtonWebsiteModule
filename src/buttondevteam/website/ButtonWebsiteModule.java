@@ -1,5 +1,18 @@
 package buttondevteam.website;
 
+import buttondevteam.lib.TBMCCoreAPI;
+import buttondevteam.lib.chat.TBMCChatAPI;
+import buttondevteam.website.io.IOHelper;
+import buttondevteam.website.page.*;
+import com.sun.net.httpserver.*;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import javax.net.ssl.*;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -9,32 +22,12 @@ import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.Security;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.util.Calendar;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
-import javax.net.ssl.*;
-import java.security.cert.Certificate;
-
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openssl.PEMKeyPair;
-import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.java.JavaPlugin;
-
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
-import com.sun.net.httpserver.HttpsConfigurator;
-import com.sun.net.httpserver.HttpsParameters;
-import com.sun.net.httpserver.HttpsServer;
-
-import buttondevteam.lib.TBMCCoreAPI;
-import buttondevteam.website.io.IOHelper;
-import buttondevteam.website.page.*;
 
 public class ButtonWebsiteModule extends JavaPlugin {
 	public static final int PORT = 443;
@@ -127,6 +120,7 @@ public class ButtonWebsiteModule extends JavaPlugin {
 		addPage(new BuildNotificationsPage());
 		addPage(new BridgePage());
 		TBMCCoreAPI.RegisterUserClass(WebUser.class);
+		TBMCChatAPI.AddCommand(this, LoginCommand.class);
 		Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
 			this.getLogger().info("Starting webserver...");
 			server.setExecutor(

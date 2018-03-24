@@ -4,3 +4,6 @@ version: 4.0
 author: NorbiPeti
 depend:
 - ButtonCore
+commands:
+  login:
+    aliases: [web, weblogin, website]

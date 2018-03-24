@@ -1,13 +1,13 @@
 package buttondevteam.website.io;
 
+import com.sun.net.httpserver.HttpExchange;
+
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
-
-import com.sun.net.httpserver.HttpExchange;
 
 public class Cookies extends HashMap<String, Cookie> {
 	private static final long serialVersionUID = -328053564170765287L;
@@ -30,7 +30,7 @@ public class Cookies extends HashMap<String, Cookie> {
 		this.expiretime = ZonedDateTime.now(ZoneId.of("GMT")).format(DateTimeFormatter.RFC_1123_DATE_TIME);
 	}
 
-	public void SendHeaders(HttpExchange exchange) {
+	public void AddHeaders(HttpExchange exchange) {
 		for (Entry<String, Cookie> item : entrySet())
 			exchange.getResponseHeaders().add("Set-Cookie",
 					item.getKey() + "=" + item.getValue().getValue() + "; expires=" + expiretime);

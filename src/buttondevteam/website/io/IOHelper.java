@@ -1,5 +1,14 @@
 package buttondevteam.website.io;
 
+import buttondevteam.lib.player.ChromaGamerBase;
+import buttondevteam.website.WebUser;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.sun.net.httpserver.HttpExchange;
+import org.apache.commons.io.IOUtils;
+import org.bukkit.Bukkit;
+
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -12,16 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
-import org.apache.commons.io.IOUtils;
-import org.bukkit.Bukkit;
-
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.sun.net.httpserver.HttpExchange;
-
-import buttondevteam.lib.player.ChromaGamerBase;
-import buttondevteam.website.WebUser;
 
 public class IOHelper {
 	public static void SendResponse(Response resp) throws IOException {
@@ -90,7 +89,7 @@ public class IOHelper {
 		user.sessionID().set(UUID.randomUUID());
 		user.save();
 		new Cookies(2).add(new Cookie("user_id", user.getUUID() + ""))
-				.add(new Cookie("session_id", user.sessionID().get().toString())).SendHeaders(exchange);
+                .add(new Cookie("session_id", user.sessionID().get().toString())).AddHeaders(exchange);
 		Bukkit.getLogger().fine("Logged in user.");
 	}
 
@@ -103,7 +102,7 @@ public class IOHelper {
 	private static void SendLogoutHeaders(HttpExchange exchange) {
 		String expiretime = "Sat, 19 Mar 2016 23:33:00 GMT";
 		new Cookies(expiretime).add(new Cookie("user_id", "del")).add(new Cookie("session_id", "del"))
-				.SendHeaders(exchange);
+                .AddHeaders(exchange);
 	}
 
 	public static Response Redirect(String url, HttpExchange exchange) throws IOException {
