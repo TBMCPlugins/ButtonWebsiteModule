@@ -1,10 +1,12 @@
 package buttondevteam.website;
 
+import buttondevteam.lib.chat.CommandClass;
 import buttondevteam.lib.chat.PlayerCommandBase;
 import buttondevteam.website.page.LoginPage;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+@CommandClass
 public class LoginCommand extends PlayerCommandBase {
     @Override //TODO: Ask about linking already existing accounts, to prevent linking someone else's
     public boolean OnCommand(Player player, String s, String[] strings) {
