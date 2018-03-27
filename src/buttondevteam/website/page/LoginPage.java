@@ -34,7 +34,7 @@ public class LoginPage extends Page {
 				UUID state = UUID.fromString(q.get("state"));
 				if (!states.containsKey(state))
 					return nope;
-				String[] folder_id = states.get(state).split("-");
+                String[] folder_id = states.get(state).split(" ");
 				if (!folder_id[0].equalsIgnoreCase(type)) //TODO: Use for other OAuth stuff as well
 					return nope;
 				TBMCPlayer cp = TBMCPlayer.getPlayer(UUID.fromString(folder_id[1]), TBMCPlayer.class);
@@ -48,13 +48,13 @@ public class LoginPage extends Page {
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
-			}
-		}
-		return new Response(200, "", exchange);
+			} else return new Response(418, "Now what", exchange); //Minecraft doesn't have full OAuth
+        }
+        return new Response(400, "Wut", exchange);
 	}
 
 	/**
-	 * Value: Folder-ID
+     * Value: Folder ID (don't use dashes as a separator... UUIDs contain them)
 	 */
 	private static final HashBiMap<UUID, String> states = HashBiMap.create();
 
@@ -67,7 +67,7 @@ public class LoginPage extends Page {
 	 */
 	public static UUID generateState(String type, String id) {
 		UUID state = UUID.randomUUID();
-		states.forcePut(state, type + "-" + id); //Replace existing for an user
+        states.forcePut(state, type + " " + id); //Replace existing for an user
 		return state;
 	}
 }
