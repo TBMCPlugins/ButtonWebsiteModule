@@ -32,7 +32,7 @@ public class IOHelper {
 	public static void SendResponse(int code, String content, HttpExchange exchange) throws IOException {
 		if (exchange.getRequestMethod().equalsIgnoreCase("HEAD")) {
 			exchange.sendResponseHeaders(code, -1); // -1 indicates no data
-			exchange.getResponseBody().close();
+            exchange.getResponseBody().close(); //TODO: Response headers not sent yet <--
 			return;
 		}
 		try (BufferedOutputStream out = new BufferedOutputStream(exchange.getResponseBody())) {
@@ -86,15 +86,15 @@ public class IOHelper {
 	 */
 	public static void LoginUser(HttpExchange exchange, WebUser user) {
 		Bukkit.getLogger().fine("Logging in user: " + user);
-		user.sessionID().set(UUID.randomUUID());
+        user.sessionID().set(UUID.randomUUID().toString());
 		user.save();
 		new Cookies(2).add(new Cookie("user_id", user.getUUID() + ""))
-                .add(new Cookie("session_id", user.sessionID().get().toString())).AddHeaders(exchange);
+                .add(new Cookie("session_id", user.sessionID().get())).AddHeaders(exchange);
 		Bukkit.getLogger().fine("Logged in user.");
 	}
 
 	public static void LogoutUser(HttpExchange exchange, WebUser user) {
-		user.sessionID().set(new UUID(0, 0));
+        user.sessionID().set(null);
 		user.save();
 		SendLogoutHeaders(exchange);
 	}
@@ -150,7 +150,7 @@ public class IOHelper {
 			return null;
 		WebUser user = ChromaGamerBase.getUser(cookies.get("user_id").getValue(), WebUser.class);
 		if (user != null && cookies.get("session_id") != null
-				&& cookies.get("session_id").getValue().equals(user.sessionID().get().toString())) {
+                && cookies.get("session_id").getValue().equals(user.sessionID().get())) {
 			if (cookies.getExpireTimeParsed().minusYears(1).isBefore(ZonedDateTime.now(ZoneId.of("GMT"))))
 				LoginUser(exchange, user);
 			return user;

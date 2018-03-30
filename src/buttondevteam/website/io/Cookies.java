@@ -33,8 +33,8 @@ public class Cookies extends HashMap<String, Cookie> {
 	public void AddHeaders(HttpExchange exchange) {
 		for (Entry<String, Cookie> item : entrySet())
 			exchange.getResponseHeaders().add("Set-Cookie",
-					item.getKey() + "=" + item.getValue().getValue() + "; expires=" + expiretime);
-		exchange.getResponseHeaders().add("Set-Cookie", "expiretime=" + expiretime + "; expires=" + expiretime);
+                    item.getKey() + "=" + item.getValue().getValue() + "; expires=" + expiretime + "; Domain=figytuna.com"); //chromagaming.figytuna.com too (commented so that I can find it later) - server.figytuna.com
+        exchange.getResponseHeaders().add("Set-Cookie", "expiretime=" + expiretime + "; expires=" + expiretime + "; Domain=figytuna.com"); //TODO: Fix header stuff
 	}
 
 	public Cookies add(Cookie cookie) {

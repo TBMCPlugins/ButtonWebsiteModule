@@ -1,10 +1,10 @@
 package buttondevteam.website;
 
-import java.util.UUID;
-
 import buttondevteam.lib.player.ChromaGamerBase;
 import buttondevteam.lib.player.PlayerData;
 import buttondevteam.lib.player.UserClass;
+
+import java.util.UUID;
 
 @UserClass(foldername = "web")
 public class WebUser extends ChromaGamerBase {
@@ -16,7 +16,7 @@ public class WebUser extends ChromaGamerBase {
 		return uuid;
 	}
 
-	public PlayerData<UUID> sessionID() {
-		return data(new UUID(0, 0)); //It's used with toString() directly, so can't be null
+    public PlayerData<String> sessionID() {
+        return data(null);
 	}
 }
