@@ -21,7 +21,7 @@ public class LoginCommand extends PlayerCommandBase {
                 "§6---- Login ----", //
                 "This command allows you to log in to our website using your Minecraft account.", //
                 "If you are already logged in to the site, you can connect your MC account to it.", //
-                "This is good for getting Minecraft rewards if you're a patreon for example." //
+                "This is good for getting Minecraft rewards if you're a patron for example." //
         };
     }
 }

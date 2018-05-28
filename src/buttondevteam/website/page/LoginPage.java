@@ -44,7 +44,7 @@ public class LoginPage extends Page {
 				IOHelper.LoginUser(exchange, wu);
 				states.remove(state);
 				try {
-					return IOHelper.Redirect("https://tbmcplugins.github.io/", exchange);
+                    return IOHelper.Redirect("https://chromagaming.figytuna.com/", exchange);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}

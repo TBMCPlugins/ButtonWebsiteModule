@@ -33,8 +33,8 @@ public class Cookies extends HashMap<String, Cookie> {
 	public void AddHeaders(HttpExchange exchange) {
 		for (Entry<String, Cookie> item : entrySet())
 			exchange.getResponseHeaders().add("Set-Cookie",
-					item.getKey() + "=" + item.getValue().getValue() + "; expires=" + expiretime);
-		exchange.getResponseHeaders().add("Set-Cookie", "expiretime=" + expiretime + "; expires=" + expiretime);
+                    item.getKey() + "=" + item.getValue().getValue() + "; expires=" + expiretime + "; Secure; HttpOnly; Domain=figytuna.com"); //Allow for frontend
+        exchange.getResponseHeaders().add("Set-Cookie", "expiretime=" + expiretime + "; expires=" + expiretime + "; Secure; HttpOnly; Domain=figytuna.com");
 	}
 
 	public Cookies add(Cookie cookie) {
