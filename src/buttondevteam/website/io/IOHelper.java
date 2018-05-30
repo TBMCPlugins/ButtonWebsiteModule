@@ -31,8 +31,8 @@ public class IOHelper {
 
 	public static void SendResponse(int code, String content, HttpExchange exchange) throws IOException {
 		if (exchange.getRequestMethod().equalsIgnoreCase("HEAD")) {
-			exchange.sendResponseHeaders(code, -1); // -1 indicates no data
-			exchange.getResponseBody().close();
+            exchange.sendResponseHeaders(200, -1); // -1 indicates no data
+            //exchange.getResponseBody().close(); - No stream is created for HEAD requests
 			return;
 		}
 		try (BufferedOutputStream out = new BufferedOutputStream(exchange.getResponseBody())) {
@@ -57,8 +57,7 @@ public class IOHelper {
 		try {
 			if (exchange.getRequestBody().available() == 0)
 				return "";
-			String content = IOUtils.toString(exchange.getRequestBody(), "UTF-8");
-			return content;
+            return IOUtils.toString(exchange.getRequestBody(), "UTF-8");
 		} catch (Exception e) {
 			e.printStackTrace();
 			return "";
@@ -73,8 +72,7 @@ public class IOHelper {
 			JsonElement e = new JsonParser().parse(content);
 			if (e == null)
 				return null;
-			JsonObject obj = e.getAsJsonObject();
-			return obj;
+            return e.getAsJsonObject();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
