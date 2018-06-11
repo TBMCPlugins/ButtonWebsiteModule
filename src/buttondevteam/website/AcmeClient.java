@@ -13,23 +13,14 @@
  */ //Modified
 package buttondevteam.website;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Writer;
-import java.net.URI;
-import java.security.KeyPair;
-import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.Collection;
-
-import org.shredzone.acme4j.*;
+import buttondevteam.lib.TBMCCoreAPI;
+import buttondevteam.website.page.AcmeChallengePage;
+import org.shredzone.acme4j.Authorization;
+import org.shredzone.acme4j.Certificate;
+import org.shredzone.acme4j.Session;
+import org.shredzone.acme4j.Status;
 import org.shredzone.acme4j.challenge.Challenge;
 import org.shredzone.acme4j.challenge.Http01Challenge;
-import org.shredzone.acme4j.exception.AcmeConflictException;
 import org.shredzone.acme4j.exception.AcmeException;
 import org.shredzone.acme4j.util.CSRBuilder;
 import org.shredzone.acme4j.util.CertificateUtils;
@@ -37,8 +28,12 @@ import org.shredzone.acme4j.util.KeyPairUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import buttondevteam.lib.TBMCCoreAPI;
-import buttondevteam.website.page.AcmeChallengePage;
+import java.io.*;
+import java.net.URI;
+import java.security.KeyPair;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * A simple client test tool.
@@ -73,12 +68,11 @@ public class AcmeClient {
 		// Load the user key file. If there is no key file, create a new one.
 		// Keep this key pair in a safe place! In a production environment, you will not be
 		// able to access your account again if you should lose the key pair.
-		KeyPair userKeyPair = loadOrCreateKeyPair(USER_KEY_FILE);
+		KeyPair userKeyPair = loadOrCreateKeyPair(USER_KEY_FILE); //TODO: Migrate to new version
 
 		// Create a session for Let's Encrypt.
 		// Use "acme://letsencrypt.org" for production server
-		Session session = new Session("acme://letsencrypt.org" + (TBMCCoreAPI.IsTestServer() ? "/staging" : ""),
-				userKeyPair);
+		Session session = new Session("acme://letsencrypt.org" + (TBMCCoreAPI.IsTestServer() ? "/staging" : ""));
 
 		// Get the Registration to the account.
 		// If there is no account yet, create a new one.

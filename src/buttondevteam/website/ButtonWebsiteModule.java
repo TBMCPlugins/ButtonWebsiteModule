@@ -132,7 +132,8 @@ public class ButtonWebsiteModule extends JavaPlugin {
 				}
 			});
 			final Calendar calendar = Calendar.getInstance();
-			if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY && !TBMCCoreAPI.IsTestServer()) { // Only update every week
+            //if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY && !TBMCCoreAPI.IsTestServer()) { // Only update every week
+            if (true) { //TODO: TMP
 				Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
 				AcmeClient.main("server.figytuna.com"); // Task is running async so we don't need an extra thread
 			}
