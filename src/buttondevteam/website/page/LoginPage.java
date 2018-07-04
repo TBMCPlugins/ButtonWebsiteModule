@@ -7,7 +7,6 @@ import buttondevteam.website.io.Response;
 import com.google.common.collect.HashBiMap;
 import com.sun.net.httpserver.HttpExchange;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 
@@ -43,11 +42,7 @@ public class LoginPage extends Page {
 					cp.connectWith(wu = WebUser.getUser(UUID.randomUUID().toString(), WebUser.class)); //Create new user with random UUID
 				IOHelper.LoginUser(exchange, wu);
 				states.remove(state);
-				try {
-                    return IOHelper.Redirect("https://chromagaming.figytuna.com/", exchange);
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
+				return IOHelper.Redirect("https://chromagaming.figytuna.com/", exchange);
 			} else return new Response(418, "Now what", exchange); //Minecraft doesn't have full OAuth
         }
         return new Response(400, "Wut", exchange);

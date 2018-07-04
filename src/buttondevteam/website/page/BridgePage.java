@@ -1,5 +1,9 @@
 package buttondevteam.website.page;
 
+import buttondevteam.website.io.Response;
+import com.sun.net.httpserver.HttpExchange;
+import org.bukkit.Bukkit;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -8,15 +12,8 @@ import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
-import org.bukkit.Bukkit;
-
-import com.sun.net.httpserver.HttpExchange;
-
-import buttondevteam.website.io.Response;
-
 public class BridgePage extends Page {
-	private Map<String, Socket> connections = new HashMap<>();
+	private final Map<String, Socket> connections = new HashMap<>();
 
 	@Override
 	public String GetName() {
@@ -101,20 +98,17 @@ public class BridgePage extends Page {
 		connections.values().remove(socket);
 	}
 
-	private int copyStream(InputStream is, OutputStream os) throws IOException { // Based on IOUtils.copy()
+	private void copyStream(InputStream is, OutputStream os) throws IOException { // Based on IOUtils.copy()
 		byte[] buffer = new byte[4096];
-		long count = 0;
-		int n = 0;
+		int n;
 		try {
 			while (-1 != (n = is.read(buffer))) { // Read is blocking
 				os.write(buffer, 0, n);
-				count += n;
 				os.flush();
 			}
 		} catch (SocketException e) { // Conection closed
 			os.flush();
 		}
-		return (int) count;
 	}
 
 	@Override
