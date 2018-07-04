@@ -19,7 +19,7 @@ public abstract class Page implements HttpHandler {
 	public final void handle(HttpExchange exchange) {
 		try {
             exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "https://chromagaming.figytuna.com");
-			if (exactPage() ? exchange.getRequestURI().getPath().equals("/" + GetName()) : true)
+			if (!exactPage() || exchange.getRequestURI().getPath().equals("/" + GetName()))
 				IOHelper.SendResponse(handlePage(exchange));
 			else {
 				IOHelper.SendResponse(404, "404 Not found: " + exchange.getRequestURI().getPath(), exchange);
@@ -46,8 +46,8 @@ public abstract class Page implements HttpHandler {
 
 	/**
 	 * Whether to return 404 when the URL doesn't match the exact path
-	 * 
-	 * @return
+	 *
+	 * @return Whether it should only match the page path
 	 */
 	public boolean exactPage() {
 		return true;

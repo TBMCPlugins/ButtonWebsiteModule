@@ -1,5 +1,16 @@
 package buttondevteam.website.page;
 
+import buttondevteam.lib.PluginUpdater;
+import buttondevteam.lib.TBMCCoreAPI;
+import buttondevteam.website.io.IOHelper;
+import buttondevteam.website.io.Response;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
+import com.sun.net.httpserver.HttpExchange;
+import org.bukkit.Bukkit;
+
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.PublicKey;
@@ -9,16 +20,6 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Supplier;
-
-import org.bukkit.Bukkit;
-
-import com.google.gson.*;
-import com.sun.net.httpserver.HttpExchange;
-
-import buttondevteam.lib.PluginUpdater;
-import buttondevteam.lib.TBMCCoreAPI;
-import buttondevteam.website.io.IOHelper;
-import buttondevteam.website.io.Response;
 
 public class BuildNotificationsPage extends Page {
 
@@ -31,8 +32,11 @@ public class BuildNotificationsPage extends Page {
 
 	private static final String publickey = ((Supplier<String>) () -> {
 		try {
-			return fromString(TBMCCoreAPI.DownloadString("https://api.travis-ci.org/config"),
-					"config.notifications.webhook.public_key").getAsString().replace("-----BEGIN PUBLIC KEY-----", "")
+			JsonElement pubkey = fromString(TBMCCoreAPI.DownloadString("https://api.travis-ci.org/config"),
+					"config.notifications.webhook.public_key");
+			if (pubkey == null)
+				return null;
+			return pubkey.getAsString().replace("-----BEGIN PUBLIC KEY-----", "")
 							.replaceAll("\n", "").replace("-----END PUBLIC KEY-----", "");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -47,7 +51,7 @@ public class BuildNotificationsPage extends Page {
 			final String payload = post.get("payload");
 			if (signatures != null && signatures.size() > 0 && post.containsKey("payload")
 					&& verifySignature(payload.getBytes(StandardCharsets.UTF_8),
-							Base64.getDecoder().decode(signatures.get(0)), publickey)) {
+					Base64.getDecoder().decode(signatures.get(0)))) {
 				Bukkit.getPluginManager()
 						.callEvent(new PluginUpdater.UpdatedEvent(gson.fromJson(payload, JsonObject.class)));
 				return new Response(200, "All right", exchange);
@@ -61,9 +65,9 @@ public class BuildNotificationsPage extends Page {
 
 	// Method for signature verification that initializes with the Public Key,
 	// updates the data to be verified and then verifies them using the signature
-	private boolean verifySignature(byte[] data, byte[] signature, String keystr) throws Exception {
+	private boolean verifySignature(byte[] data, byte[] signature) throws Exception {
 		Signature sig = Signature.getInstance("SHA1withRSA");
-		sig.initVerify(getPublic(keystr));
+		sig.initVerify(getPublic(BuildNotificationsPage.publickey));
 		sig.update(data);
 
 		return sig.verify(signature);

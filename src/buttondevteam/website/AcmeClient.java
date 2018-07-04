@@ -15,15 +15,11 @@ package buttondevteam.website;
 
 import buttondevteam.lib.TBMCCoreAPI;
 import buttondevteam.website.page.AcmeChallengePage;
-import org.shredzone.acme4j.Authorization;
-import org.shredzone.acme4j.Certificate;
-import org.shredzone.acme4j.Session;
-import org.shredzone.acme4j.Status;
+import org.shredzone.acme4j.*;
 import org.shredzone.acme4j.challenge.Challenge;
 import org.shredzone.acme4j.challenge.Http01Challenge;
 import org.shredzone.acme4j.exception.AcmeException;
 import org.shredzone.acme4j.util.CSRBuilder;
-import org.shredzone.acme4j.util.CertificateUtils;
 import org.shredzone.acme4j.util.KeyPairUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.URI;
 import java.security.KeyPair;
-import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -42,16 +37,16 @@ import java.util.Collection;
  */
 public class AcmeClient {
 	// File name of the User Key Pair
-	private static final File USER_KEY_FILE = new File("user.key");
+	public static final File USER_KEY_FILE = new File("user.key");
 
 	// File name of the Domain Key Pair
-	private static final File DOMAIN_KEY_FILE = new File("domain.key");
+	public static final File DOMAIN_KEY_FILE = new File("domain.key");
 
 	// File name of the CSR
-	private static final File DOMAIN_CSR_FILE = new File("domain.csr");
+	public static final File DOMAIN_CSR_FILE = new File("domain.csr");
 
 	// File name of the signed certificate
-	private static final File DOMAIN_CHAIN_FILE = new File("domain-chain.crt");
+	public static final File DOMAIN_CHAIN_FILE = new File("domain-chain.crt");
 
 	// RSA key size of generated key pairs
 	private static final int KEY_SIZE = 2048;
@@ -68,7 +63,7 @@ public class AcmeClient {
 		// Load the user key file. If there is no key file, create a new one.
 		// Keep this key pair in a safe place! In a production environment, you will not be
 		// able to access your account again if you should lose the key pair.
-		KeyPair userKeyPair = loadOrCreateKeyPair(USER_KEY_FILE); //TODO: Migrate to new version
+		KeyPair userKeyPair = loadOrCreateKeyPair(USER_KEY_FILE);
 
 		// Create a session for Let's Encrypt.
 		// Use "acme://letsencrypt.org" for production server
@@ -76,11 +71,13 @@ public class AcmeClient {
 
 		// Get the Registration to the account.
 		// If there is no account yet, create a new one.
-		Registration reg = findOrRegisterAccount(session);
+		Account acc = findOrRegisterAccount(session, userKeyPair);
+
+		Order order = acc.newOrder().domains(domains).create();
 
 		// Separately authorize every requested domain.
-		for (String domain : domains) {
-			authorize(reg, domain);
+		for (Authorization auth : order.getAuthorizations()) {
+			authorize(auth);
 		}
 
 		// Load or create a key pair for the domains. This should not be the userKeyPair!
@@ -96,19 +93,44 @@ public class AcmeClient {
 			csrb.write(out);
 		}
 
-		// Now request a signed certificate.
-		Certificate certificate = reg.requestCertificate(csrb.getEncoded());
+		LOG.info("Ordering certificate...");
+		// Order the certificate
+		order.execute(csrb.getEncoded());
+
+		// Wait for the order to complete
+		try {
+			int attempts = 10;
+			while (order.getStatus() != Status.VALID && attempts-- > 0) {
+				// Did the order fail?
+				if (order.getStatus() == Status.INVALID) {
+					throw new AcmeException("Order failed... Giving up.");
+				}
+
+				// Wait for a few seconds
+				Thread.sleep(3000L);
+
+				// Then update the status
+				order.update();
+				if (order.getStatus() != Status.VALID)
+					LOG.info("Not yet...");
+			}
+		} catch (InterruptedException ex) {
+			LOG.error("interrupted", ex);
+			Thread.currentThread().interrupt();
+		}
+
+		// Get the certificate
+		Certificate certificate = order.getCertificate();
+
+		if (certificate == null)
+			throw new AcmeException("Certificate is null. Wot.");
 
 		LOG.info("Success! The certificate for domains " + domains + " has been generated!");
-		LOG.info("Certificate URI: " + certificate.getLocation());
-
-		// Download the leaf certificate and certificate chain.
-		X509Certificate cert = certificate.download();
-		X509Certificate[] chain = certificate.downloadChain();
+		LOG.info("Certificate URL: " + certificate.getLocation());
 
 		// Write a combined file containing the certificate and chain.
 		try (FileWriter fw = new FileWriter(DOMAIN_CHAIN_FILE)) {
-			CertificateUtils.writeX509CertificateChain(fw, cert, chain);
+			certificate.writeCertificate(fw);
 		}
 
 		// That's all! Configure your web server to use the DOMAIN_KEY_FILE and
@@ -135,44 +157,34 @@ public class AcmeClient {
 	}
 
 	/**
-	 * Finds your {@link Registration} at the ACME server. It will be found by your user's public key. If your key is not known to the server yet, a new registration will be created.
-	 * <p>
-	 * This is a simple way of finding your {@link Registration}. A better way is to get the URI of your new registration with {@link Registration#getLocation()} and store it somewhere. If you need to
-	 * get access to your account later, reconnect to it via {@link Registration#bind(Session, URI)} by using the stored location.
+	 * Finds your {@link Account} at the ACME server. It will be found by your user's public key. If your key is not known to the server yet, a new registration will be created.
 	 *
 	 * @param session
 	 *            {@link Session} to bind with
-	 * @return {@link Registration} connected to your account
+	 * @param kp The user keypair
+	 * @return {@link Account} connected to your account
 	 */
-	private Registration findOrRegisterAccount(Session session) throws AcmeException, IOException {
-		Registration reg;
+	private Account findOrRegisterAccount(Session session, KeyPair kp) throws AcmeException, IOException {
+		Account acc;
 
 		URI loc = ButtonWebsiteModule.getRegistration();
 		if (loc != null) {
 			LOG.info("Loading account from file");
-			return Registration.bind(session, loc);
+			return new Login(loc.toURL(), kp, session).getAccount();
 		}
 
-		try {
-			// Try to create a new Registration.
-			reg = new RegistrationBuilder().create(session);
-			LOG.info("Registered a new user, URI: " + reg.getLocation());
+		// Try to create a new Registration.
+		AccountBuilder ab = new AccountBuilder().useKeyPair(kp);
 
-			// This is a new account. Let the user accept the Terms of Service.
-			// We won't be able to authorize domains until the ToS is accepted.
-			URI agreement = reg.getAgreement();
-			LOG.info("Terms of Service: " + agreement);
-			acceptAgreement(reg, agreement);
+		// This is a new account. Let the user accept the Terms of Service.
+		// We won't be able to authorize domains until the ToS is accepted.
+		URI agreement = session.getMetadata().getTermsOfService();
+		acceptAgreement(ab, agreement);
+		acc = ab.create(session);
+		LOG.info("Registered a new user, URI: " + acc.getLocation());
+		ButtonWebsiteModule.storeRegistration(acc.getLocation());
 
-		} catch (AcmeConflictException ex) {
-			// The Key Pair is already registered. getLocation() contains the
-			// URL of the existing registration's location. Bind it to the session.
-			reg = Registration.bind(session, ex.getLocation());
-			LOG.info("Account does already exist, URI: " + reg.getLocation(), ex);
-			ButtonWebsiteModule.storeRegistration(ex.getLocation());
-		}
-
-		return reg;
+		return acc;
 	}
 
 	/**
@@ -180,18 +192,18 @@ public class AcmeClient {
 	 * <p>
 	 * You need separate authorizations for subdomains (e.g. "www" subdomain). Wildcard certificates are not currently supported.
 	 *
-	 * @param reg
-	 *            {@link Registration} of your account
-	 * @param domain
-	 *            Name of the domain to authorize
+	 * @param auth
+	 *            {@link Authorization} for the domain
 	 */
-	private void authorize(Registration reg, String domain) throws AcmeException {
-		// Authorize the domain.
-		Authorization auth = reg.authorizeDomain(domain);
-		LOG.info("Authorization for domain " + domain);
+	private void authorize(Authorization auth) throws AcmeException {
+		LOG.info("Authorization for domain " + auth.getDomain());
 
-		// Find the desired challenge and prepare it.
-		Challenge challenge = httpChallenge(auth, domain);
+		// The authorization is already valid. No need to process a challenge.
+		if (auth.getStatus() == Status.VALID) {
+			return;
+		}
+
+		Challenge challenge = httpChallenge(auth);
 
 		if (challenge == null) {
 			throw new AcmeException("No challenge found");
@@ -227,7 +239,7 @@ public class AcmeClient {
 
 		// All reattempts are used up and there is still no valid authorization?
 		if (challenge.getStatus() != Status.VALID) {
-			throw new AcmeException("Failed to pass the challenge for domain " + domain + ", ... Giving up.");
+			throw new AcmeException("Failed to pass the challenge for domain " + auth.getDomain() + ", ... Giving up.");
 		}
 	}
 
@@ -241,11 +253,9 @@ public class AcmeClient {
 	 *
 	 * @param auth
 	 *            {@link Authorization} to find the challenge in
-	 * @param domain
-	 *            Domain name to be authorized
 	 * @return {@link Challenge} to verify
 	 */
-	public Challenge httpChallenge(Authorization auth, String domain) throws AcmeException {
+	public Challenge httpChallenge(Authorization auth) throws AcmeException {
 		// Find a single http-01 challenge
 		Http01Challenge challenge = auth.findChallenge(Http01Challenge.TYPE);
 		if (challenge == null) {
@@ -256,7 +266,7 @@ public class AcmeClient {
 		/*
 		 * else LOG.info("Store the challenge data! Can't do automatically.");
 		 */
-		LOG.info("It should be reachable at: http://" + domain + "/.well-known/acme-challenge/" + challenge.getToken());
+		LOG.info("It should be reachable at: http://" + auth.getDomain() + "/.well-known/acme-challenge/" + challenge.getToken());
 		// LOG.info("File name: " + challenge.getToken());
 		// LOG.info("Content: " + challenge.getAuthorization());
 		/*
@@ -274,12 +284,13 @@ public class AcmeClient {
 	/**
 	 * Presents the user a link to the Terms of Service, and asks for confirmation. If the user denies confirmation, an exception is thrown.
 	 *
-	 * @param reg
-	 *            {@link Registration} User's registration
+	 * @param ab
+	 *            {@link AccountBuilder} for the user
 	 * @param agreement
 	 *            {@link URI} of the Terms of Service
 	 */
-	public void acceptAgreement(Registration reg, URI agreement) throws AcmeException, IOException {
+	public void acceptAgreement(AccountBuilder ab, URI agreement) throws AcmeException, IOException {
+		LOG.info("Terms of Service: " + agreement);
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		System.out.println("Do you accept the terms? (y/n)");
 		if (br.readLine().equalsIgnoreCase("y\n")) {
@@ -287,7 +298,7 @@ public class AcmeClient {
 		}
 
 		// Motify the Registration and accept the agreement
-		reg.modify().setAgreement(agreement).commit();
+		ab.agreeToTermsOfService();
 		LOG.info("Updated user's ToS");
 	}
 

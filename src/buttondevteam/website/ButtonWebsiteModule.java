@@ -4,7 +4,10 @@ import buttondevteam.lib.TBMCCoreAPI;
 import buttondevteam.lib.chat.TBMCChatAPI;
 import buttondevteam.website.io.IOHelper;
 import buttondevteam.website.page.*;
-import com.sun.net.httpserver.*;
+import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpsConfigurator;
+import com.sun.net.httpserver.HttpsParameters;
+import com.sun.net.httpserver.HttpsServer;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
@@ -14,10 +17,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.net.ssl.*;
 import java.io.*;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.*;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.PrivateKey;
@@ -46,7 +46,7 @@ public class ButtonWebsiteModule extends JavaPlugin {
 			// initialise the keystore
 			char[] password = "password".toCharArray();
 			KeyStore ks = KeyStore.getInstance("JKS");
-			String certfile = "domain-chain.crt"; /* your cert path */
+            File certfile = AcmeClient.DOMAIN_CHAIN_FILE; /* your cert path */
 			File keystoreFile = new File("keystore.keystore");
 
 			ks.load(keystoreFile.exists() ? new FileInputStream(keystoreFile) : null, password);
@@ -57,9 +57,9 @@ public class ButtonWebsiteModule extends JavaPlugin {
 
 			CertificateFactory cf = CertificateFactory.getInstance("X.509");
 			InputStream certstream = fullStream(certfile);
-			Certificate[] certs = cf.generateCertificates(certstream).stream().toArray(Certificate[]::new);
+            Certificate[] certs = cf.generateCertificates(certstream).toArray(new Certificate[0]);
 
-			BufferedReader br = new BufferedReader(new FileReader("domain.key"));
+            BufferedReader br = new BufferedReader(new FileReader(AcmeClient.DOMAIN_KEY_FILE));
 
 			Security.addProvider(new BouncyCastleProvider());
 
@@ -107,7 +107,7 @@ public class ButtonWebsiteModule extends JavaPlugin {
 				}
 			});
 		} catch (Exception e) {
-			TBMCCoreAPI.SendException("An error occured while starting the webserver!", e);
+            TBMCCoreAPI.SendException("An error occurred while starting the webserver!", e);
 			getServer().getPluginManager().disablePlugin(this);
 		}
 	}
@@ -124,16 +124,10 @@ public class ButtonWebsiteModule extends JavaPlugin {
 		Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
 			this.getLogger().info("Starting webserver...");
 			server.setExecutor(
-					new ThreadPoolExecutor(4, 8, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(100)));
-			httpserver.createContext("/", new HttpHandler() {
-				@Override
-				public void handle(HttpExchange exchange) throws IOException {
-					IOHelper.SendResponse(IOHelper.Redirect("https://server.figytuna.com/", exchange));
-				}
-			});
+                    new ThreadPoolExecutor(4, 8, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<>(100)));
+            httpserver.createContext("/", exchange -> IOHelper.SendResponse(IOHelper.Redirect("https://server.figytuna.com/", exchange)));
 			final Calendar calendar = Calendar.getInstance();
-            //if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY && !TBMCCoreAPI.IsTestServer()) { // Only update every week
-            if (true) { //TODO: TMP
+            if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY && !TBMCCoreAPI.IsTestServer()) { // Only update every week
 				Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
 				AcmeClient.main("server.figytuna.com"); // Task is running async so we don't need an extra thread
 			}
@@ -168,7 +162,7 @@ public class ButtonWebsiteModule extends JavaPlugin {
 		httpserver.createContext("/" + page.GetName(), page);
 	}
 
-	static void storeRegistration(URI location) {
+    static void storeRegistration(URL location) {
 		final ButtonWebsiteModule plugin = getPlugin(ButtonWebsiteModule.class);
 		plugin.getConfig().set("registration", location.toString());
 		plugin.saveConfig();
@@ -184,13 +178,12 @@ public class ButtonWebsiteModule extends JavaPlugin {
 		}
 	}
 
-	private static InputStream fullStream(String fname) throws IOException {
-		FileInputStream fis = new FileInputStream(fname);
+    private static InputStream fullStream(File f) throws IOException {
+        FileInputStream fis = new FileInputStream(f);
 		DataInputStream dis = new DataInputStream(fis);
 		byte[] bytes = new byte[dis.available()];
 		dis.readFully(bytes);
 		dis.close();
-		ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-		return bais;
+        return new ByteArrayInputStream(bytes);
 	}
 }

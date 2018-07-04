@@ -103,7 +103,7 @@ public class IOHelper {
                 .AddHeaders(exchange);
 	}
 
-	public static Response Redirect(String url, HttpExchange exchange) throws IOException {
+	public static Response Redirect(String url, HttpExchange exchange) {
 		exchange.getResponseHeaders().add("Location", url);
 		return new Response(303, "<a href=\"" + url + "\">If you can see this, click here to continue</a>", exchange);
 	}
@@ -113,9 +113,9 @@ public class IOHelper {
 			return new Cookies();
 		Map<String, String> map = new HashMap<>();
 		for (String cheader : exchange.getRequestHeaders().get("Cookie")) {
-			String[] spl = cheader.split("\\;\\s*");
+			String[] spl = cheader.split(";\\s*");
 			for (String s : spl) {
-				String[] kv = s.split("\\=");
+				String[] kv = s.split("=");
 				if (kv.length < 2)
 					continue;
 				map.put(kv[0], kv[1]);
@@ -123,7 +123,7 @@ public class IOHelper {
 		}
 		if (!map.containsKey("expiretime"))
 			return new Cookies();
-		Cookies cookies = null;
+		Cookies cookies;
 		try {
 			cookies = new Cookies(map.get("expiretime"));
 			for (Entry<String, String> item : map.entrySet())
@@ -137,12 +137,11 @@ public class IOHelper {
 
 	/**
 	 * Get logged in user. It may also send logout headers if the cookies are invalid, or login headers to keep the user logged in. <b>Make sure to save the user data.</b>
-	 * 
-	 * @param exchange
+	 *
+	 * @param exchange The exchange
 	 * @return The logged in user or null if not logged in.
-	 * @throws IOException
 	 */
-	public static WebUser GetLoggedInUser(HttpExchange exchange) throws IOException {
+	public static WebUser GetLoggedInUser(HttpExchange exchange) {
 		Cookies cookies = GetCookies(exchange);
 		if (!cookies.containsKey("user_id") || !cookies.containsKey("session_id"))
 			return null;
@@ -188,10 +187,10 @@ public class IOHelper {
 
 	public static HashMap<String, String> GetPOSTKeyValues(HttpExchange exchange) {
 		try {
-			String[] content = GetPOST(exchange).split("\\&");
+			String[] content = GetPOST(exchange).split("&");
 			HashMap<String, String> vars = new HashMap<>();
 			for (String var : content) {
-				String[] spl = var.split("\\=");
+				String[] spl = var.split("=");
 				if (spl.length == 1)
 					vars.put(spl[0], "");
 				else
