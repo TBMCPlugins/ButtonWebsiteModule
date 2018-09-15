@@ -53,9 +53,13 @@ public class BridgePage extends Page {
 					return new Response(400, "No connection", exchange);
 				if (s.isClosed())
 					return new Response(410, "Socket Gone", exchange);
-				exchange.sendResponseHeaders(200, 0); // Chunked transfer, any amount of data
-				copyStream(s.getInputStream(), exchange.getResponseBody());
-				exchange.getResponseBody().close(); // It'll only get here when the communication is already done
+				try {
+					exchange.sendResponseHeaders(200, 0); // Chunked transfer, any amount of data
+					copyStream(s.getInputStream(), exchange.getResponseBody());
+					exchange.getResponseBody().close(); // It'll only get here when the communication is already done
+				} catch (IOException ex) { //Failed to send it over HTTP, GET connection closed
+					closeSocket(exchange); //We only have one GET, connection over
+				}
 				return null; // Response already sent
 			case "DELETE":
 				System.out.println("[BWM] [" + id + "] delet this");
@@ -65,7 +69,12 @@ public class BridgePage extends Page {
 				return new Response(403, "Unknown request", exchange);
 			}
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			if (e instanceof SocketException) {
+				closeSocket(exchange);
+				return new Response(410, "Socket Gone because of error: " + e, exchange);
+			}
+			e.printStackTrace();
+			return new Response(500, "Internal Server Error: " + e, exchange);
 		}
 	}
 
@@ -92,8 +101,7 @@ public class BridgePage extends Page {
 			return;
 		try {
 			socket.close();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+		} catch (IOException ignored) {
 		}
 		connections.values().remove(socket);
 	}
