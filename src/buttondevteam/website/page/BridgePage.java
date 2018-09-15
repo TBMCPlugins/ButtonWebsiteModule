@@ -59,6 +59,7 @@ public class BridgePage extends Page {
 					exchange.getResponseBody().close(); // It'll only get here when the communication is already done
 				} catch (IOException ex) { //Failed to send it over HTTP, GET connection closed
 					closeSocket(exchange); //We only have one GET, connection over
+					System.out.println("[BWM] [" + id + "] over (GET): " + ex.toString());
 				}
 				return null; // Response already sent
 			case "DELETE":
@@ -71,6 +72,7 @@ public class BridgePage extends Page {
 		} catch (IOException e) {
 			if (e instanceof SocketException) {
 				closeSocket(exchange);
+				System.out.println("[BWM] [" + id + "] closed: " + e.toString());
 				return new Response(410, "Socket Gone because of error: " + e, exchange);
 			}
 			e.printStackTrace();
