@@ -30,17 +30,19 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class ButtonWebsiteModule extends JavaPlugin {
-	public static final int PORT = 443;
 	private static HttpsServer server;
 	/**
 	 * For ACME validation and user redirection
 	 */
 	private static HttpServer httpserver;
+	private static boolean enabled;
 
 	public ButtonWebsiteModule() {
 		try {
-			server = HttpsServer.create(new InetSocketAddress((InetAddress) null, PORT), 10);
-			httpserver = HttpServer.create(new InetSocketAddress((InetAddress) null, 80), 10);
+			int ps = getConfig().getInt("https-port", 443);
+			int p = getConfig().getInt("http-port", 80);
+			server = HttpsServer.create(new InetSocketAddress((InetAddress) null, ps), 10);
+			httpserver = HttpServer.create(new InetSocketAddress((InetAddress) null, p), 10);
 			SSLContext sslContext = SSLContext.getInstance("TLS");
 
 			// initialise the keystore
@@ -106,14 +108,19 @@ public class ButtonWebsiteModule extends JavaPlugin {
 					}
 				}
 			});
+			enabled = true;
 		} catch (Exception e) {
             TBMCCoreAPI.SendException("An error occurred while starting the webserver!", e);
-			getServer().getPluginManager().disablePlugin(this);
+			enabled = false; //It's not even enabled yet, so we need a variable
 		}
 	}
 
 	@Override
 	public void onEnable() {
+		if (!enabled) {
+			getServer().getPluginManager().disablePlugin(this);
+			return;
+		}
 		addPage(new IndexPage());
 		addPage(new LoginPage());
 		addPage(new ProfilePage());
@@ -152,6 +159,8 @@ public class ButtonWebsiteModule extends JavaPlugin {
 	 * Adds a new page/endpoint to the website. This method needs to be called before the server finishes loading (onEnable).
 	 */
 	public static void addPage(Page page) {
+		if (!enabled)
+			return;
 		server.createContext("/" + page.GetName(), page);
 	}
 
@@ -159,6 +168,8 @@ public class ButtonWebsiteModule extends JavaPlugin {
 	 * Adds an <b>insecure</b> endpoint to the website. This should be avoided when possible.
 	 */
 	public static void addHttpPage(Page page) {
+		if (!enabled)
+			return;
 		httpserver.createContext("/" + page.GetName(), page);
 	}
 

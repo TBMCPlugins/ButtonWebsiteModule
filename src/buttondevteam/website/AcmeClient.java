@@ -261,17 +261,8 @@ public class AcmeClient {
 		if (challenge == null) {
 			throw new AcmeException("Found no " + Http01Challenge.TYPE + " challenge, don't know what to do...");
 		}
-		// if (ButtonWebsiteModule.PORT == 443)
 		LOG.info("Storing the challenge data.");
-		/*
-		 * else LOG.info("Store the challenge data! Can't do automatically.");
-		 */
 		LOG.info("It should be reachable at: http://" + auth.getDomain() + "/.well-known/acme-challenge/" + challenge.getToken());
-		// LOG.info("File name: " + challenge.getToken());
-		// LOG.info("Content: " + challenge.getAuthorization());
-		/*
-		 * LOG.info("Press any key to continue..."); if (ButtonWebsiteModule.PORT != 443) try { System.in.read(); } catch (IOException e) { e.printStackTrace(); }
-		 */
 		ButtonWebsiteModule.addHttpPage(new AcmeChallengePage(challenge.getToken(), challenge.getAuthorization()));
 		ButtonWebsiteModule.startHttp();
 		try {
