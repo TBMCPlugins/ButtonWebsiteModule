@@ -63,6 +63,9 @@
 	</build>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <branch>
+            master
+        </branch>
 	</properties>
 
 	<repositories>
@@ -118,7 +121,7 @@
 		<dependency>
 			<groupId>com.github.TBMCPlugins.ButtonCore</groupId>
 			<artifactId>ButtonCore</artifactId>
-			<version>master-SNAPSHOT</version>
+            <version>${branch}-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
         <!-- https://mvnrepository.com/artifact/org.shredzone.acme4j/acme4j-client -->
@@ -139,4 +142,19 @@
 			<version>1.60</version>
 		</dependency>
 	</dependencies>
+
+    <profiles>
+        <profile>
+            <id>ci</id>
+            <activation>
+                <property>
+                    <name>env.TRAVIS_BRANCH</name>
+                </property>
+            </activation>
+            <properties>
+                <!-- Override only if necessary -->
+                <branch>${env.TRAVIS_BRANCH}</branch>
+            </properties>
+        </profile>
+    </profiles>
 </project>
