@@ -1,6 +1,6 @@
 package buttondevteam.website.page;
 
-import buttondevteam.component.updater.PluginUpdater;
+import buttondevteam.core.component.updater.PluginUpdater;
 import buttondevteam.lib.TBMCCoreAPI;
 import buttondevteam.website.io.IOHelper;
 import buttondevteam.website.io.Response;

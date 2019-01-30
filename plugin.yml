@@ -3,7 +3,7 @@ main: buttondevteam.website.ButtonWebsiteModule
 version: 4.0
 author: NorbiPeti
 depend:
-- ButtonCore
+  - ThorpeCore
 commands:
   login:
     aliases: [web, weblogin, website]
