@@ -1,6 +1,7 @@
 package buttondevteam.website.page;
 
 import buttondevteam.lib.TBMCCoreAPI;
+import buttondevteam.website.ButtonWebsiteModule;
 import buttondevteam.website.io.IOHelper;
 import buttondevteam.website.io.Response;
 import com.sun.net.httpserver.HttpExchange;
@@ -25,7 +26,8 @@ public abstract class Page implements HttpHandler {
 				IOHelper.SendResponse(404, "404 Not found: " + exchange.getRequestURI().getPath(), exchange);
 			}
 		} catch (Exception e) {
-			TBMCCoreAPI.SendException("Internal Server Error in ButtonWebsiteModule!", e);
+			ButtonWebsiteModule module = ButtonWebsiteModule.getPlugin(ButtonWebsiteModule.class);
+			TBMCCoreAPI.SendException("Internal Server Error in ButtonWebsiteModule!", e, module);
 			try {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				PrintStream str = new PrintStream(baos);
@@ -34,7 +36,7 @@ public abstract class Page implements HttpHandler {
 				str.print("</pre>");
 				IOHelper.SendResponse(500, baos.toString("UTF-8"), exchange);
 			} catch (Exception e1) {
-				TBMCCoreAPI.SendException("Exception while sending Internal Server Error in ButtonWebsiteModule!", e1);
+				TBMCCoreAPI.SendException("Exception while sending Internal Server Error in ButtonWebsiteModule!", e1, module);
 			}
 		}
 	}

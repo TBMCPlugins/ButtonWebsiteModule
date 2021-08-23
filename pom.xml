@@ -119,8 +119,8 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.github.TBMCPlugins.ButtonCore</groupId>
-			<artifactId>ButtonCore</artifactId>
+			<groupId>com.github.TBMCPlugins.ChromaCore</groupId>
+			<artifactId>Chroma-Core</artifactId>
             <version>${branch}-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>

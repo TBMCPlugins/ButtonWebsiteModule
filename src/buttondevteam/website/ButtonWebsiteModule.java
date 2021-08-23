@@ -1,7 +1,7 @@
 package buttondevteam.website;
 
 import buttondevteam.lib.TBMCCoreAPI;
-import buttondevteam.lib.chat.TBMCChatAPI;
+import buttondevteam.lib.architecture.ButtonPlugin;
 import buttondevteam.website.io.IOHelper;
 import buttondevteam.website.page.*;
 import com.sun.net.httpserver.HttpServer;
@@ -13,7 +13,6 @@ import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.net.ssl.*;
 import java.io.*;
@@ -29,7 +28,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class ButtonWebsiteModule extends JavaPlugin {
+public class ButtonWebsiteModule extends ButtonPlugin {
 	private static HttpsServer server;
 	/**
 	 * For ACME validation and user redirection
@@ -110,13 +109,13 @@ public class ButtonWebsiteModule extends JavaPlugin {
 			});
 			enabled = true;
 		} catch (Exception e) {
-            TBMCCoreAPI.SendException("An error occurred while starting the webserver!", e);
+            TBMCCoreAPI.SendException("An error occurred while starting the webserver!", e, this);
 			enabled = false; //It's not even enabled yet, so we need a variable
 		}
 	}
 
 	@Override
-	public void onEnable() {
+	public void pluginEnable() {
 		if (!enabled) {
 			getServer().getPluginManager().disablePlugin(this);
 			return;
@@ -126,8 +125,8 @@ public class ButtonWebsiteModule extends JavaPlugin {
 		addPage(new ProfilePage());
 		addPage(new BuildNotificationsPage());
 		addPage(new BridgePage());
-		TBMCCoreAPI.RegisterUserClass(WebUser.class);
-		TBMCChatAPI.AddCommand(this, LoginCommand.class);
+		TBMCCoreAPI.RegisterUserClass(WebUser.class, WebUser::new);
+		getCommand2MC().registerCommand(new LoginCommand());
 		Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
 			this.getLogger().info("Starting webserver...");
 			server.setExecutor(
@@ -143,6 +142,10 @@ public class ButtonWebsiteModule extends JavaPlugin {
 				httpserver.start();
 			this.getLogger().info("Webserver started");
 		});
+	}
+
+	@Override
+	protected void pluginDisable() {
 	}
 
 	private static boolean httpstarted = false;

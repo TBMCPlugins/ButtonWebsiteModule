@@ -301,7 +301,7 @@ public class AcmeClient {
 	 */
 	public static void main(String... args) {
 		if (args.length == 0) {
-			TBMCCoreAPI.SendException("Error while doing ACME!", new Exception("No domains given"));
+			LOG.error("Error while doing ACME!", new Exception("No domains given"));
 			return;
 		}
 

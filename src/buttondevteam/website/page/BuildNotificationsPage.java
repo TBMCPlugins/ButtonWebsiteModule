@@ -1,6 +1,5 @@
 package buttondevteam.website.page;
 
-import buttondevteam.core.component.updater.PluginUpdater;
 import buttondevteam.lib.TBMCCoreAPI;
 import buttondevteam.website.io.IOHelper;
 import buttondevteam.website.io.Response;
@@ -52,8 +51,8 @@ public class BuildNotificationsPage extends Page {
 			if (signatures != null && signatures.size() > 0 && post.containsKey("payload")
 					&& verifySignature(payload.getBytes(StandardCharsets.UTF_8),
 					Base64.getDecoder().decode(signatures.get(0)))) {
-				Bukkit.getPluginManager()
-						.callEvent(new PluginUpdater.UpdatedEvent(gson.fromJson(payload, JsonObject.class)));
+				/*Bukkit.getPluginManager()
+						.callEvent(new PluginUpdater.UpdatedEvent(gson.fromJson(payload, JsonObject.class)));*/
 				return new Response(200, "All right", exchange);
 			}
 		} catch (Exception e) {
