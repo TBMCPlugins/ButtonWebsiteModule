@@ -6,8 +6,8 @@ import buttondevteam.website.io.IOHelper;
 import buttondevteam.website.io.Response;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import org.apache.commons.io.output.ByteArrayOutputStream;
 
+import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
 /**

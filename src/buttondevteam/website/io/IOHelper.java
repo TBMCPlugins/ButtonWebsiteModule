@@ -6,13 +6,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.sun.net.httpserver.HttpExchange;
-import org.apache.commons.io.IOUtils;
 import org.bukkit.Bukkit;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
@@ -57,7 +53,10 @@ public class IOHelper {
 		try {
 			if (exchange.getRequestBody().available() == 0)
 				return "";
-            return IOUtils.toString(exchange.getRequestBody(), "UTF-8");
+			try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+				exchange.getRequestBody().transferTo(baos);
+				return baos.toString(StandardCharsets.UTF_8);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			return "";
